@@ -68,29 +68,53 @@ export function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Check health and load demo projects + history on mount
+  // Check health and load demo projects + history on mount with auto-retry
   useEffect(() => {
+    let intervalId: any;
+
     const initData = async () => {
       const healthy = await checkApiHealth();
       setIsBackendHealthy(healthy);
 
-      try {
-        const demos = await fetchDemoProjects();
-        setDemoProjects(demos);
-      } catch (err) {
-        console.warn('Could not load demo projects from backend');
-      }
+      if (healthy) {
+        try {
+          const demos = await fetchDemoProjects();
+          setDemoProjects(demos);
+        } catch (err) {
+          console.warn('Could not load demo projects from backend');
+        }
 
-      try {
-        const history = await fetchScanHistory();
-        setScanHistory(history);
-      } catch (err) {
-        console.warn('Could not load history from backend');
+        try {
+          const history = await fetchScanHistory();
+          setScanHistory(history);
+        } catch (err) {
+          console.warn('Could not load history from backend');
+        }
       }
     };
 
     initData();
+
+    // Auto-poll every 6s until connected (handles Render cold start)
+    intervalId = setInterval(async () => {
+      const healthy = await checkApiHealth();
+      if (healthy) {
+        setIsBackendHealthy(true);
+        clearInterval(intervalId);
+        try {
+          const demos = await fetchDemoProjects();
+          setDemoProjects(demos);
+        } catch {}
+        try {
+          const history = await fetchScanHistory();
+          setScanHistory(history);
+        } catch {}
+      }
+    }, 6000);
+
+    return () => clearInterval(intervalId);
   }, []);
+
 
   const handleScanFiles = async (files: File[], projectName: string) => {
     setIsLoading(true);

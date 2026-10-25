@@ -2,16 +2,40 @@ import axios from 'axios';
 import { ScanResult, ScanHistoryItem, DemoProjectInfo, BBM92SimulationResult } from '../types/scan';
 
 const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-const API_BASE = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:8000/api' : '/api');
+
+// Determine API root: support VITE_API_URL, fallback to live Render service in production or localhost in development
+const getApiBase = (): string => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  let base = envUrl && envUrl.trim() !== '' 
+    ? envUrl.trim() 
+    : (isLocalhost ? 'http://localhost:8000/api' : 'https://quantumshield-asft.onrender.com/api');
+  
+  // Clean trailing slashes
+  base = base.replace(/\/+$/, '');
+  // Ensure it has /api prefix
+  if (!base.endsWith('/api')) {
+    base = `${base}/api`;
+  }
+  return base;
+};
+
+export const API_BASE = getApiBase();
 
 export const checkApiHealth = async (): Promise<boolean> => {
   try {
-    const res = await axios.get(`${API_BASE}/health`, { timeout: 3000 });
-    return res.data.status === 'healthy';
+    const res = await axios.get(`${API_BASE}/health`, { timeout: 8000 });
+    return res.data?.status === 'healthy';
   } catch (err) {
-    return false;
+    // Retry once in case of initial cold start latency
+    try {
+      const retryRes = await axios.get(`${API_BASE}/health`, { timeout: 8000 });
+      return retryRes.data?.status === 'healthy';
+    } catch {
+      return false;
+    }
   }
 };
+
 
 export const fetchDemoProjects = async (): Promise<DemoProjectInfo[]> => {
   const res = await axios.get(`${API_BASE}/demo-projects`);
