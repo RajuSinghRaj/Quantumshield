@@ -45,7 +45,7 @@ export const RiskCharts: React.FC<RiskChartsProps> = ({ findings, assetCounts })
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       
       {/* Chart 1: Donut Chart - Quantum Risk Breakdown */}
-      <div className="glass-panel p-6 rounded-2xl border border-purple-500/30 space-y-4">
+      <div className="glass-panel p-6 rounded-3xl border border-white/6 space-y-4">
         <h3 className="text-sm font-bold font-mono text-white tracking-wider flex items-center justify-between">
           <span>QUANTUM RISK DISTRIBUTION</span>
           <span className="text-xs text-slate-400 font-normal">Shor vs Grover vs PQC</span>
@@ -82,18 +82,18 @@ export const RiskCharts: React.FC<RiskChartsProps> = ({ findings, assetCounts })
         </div>
 
         {/* Legend */}
-        <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-2 border-t border-slate-800">
+        <div className="grid grid-cols-2 gap-2 text-[11px] font-mono pt-3 border-t border-white/5">
           {pieData.map((item, idx) => (
-            <div key={idx} className="flex items-center space-x-2">
-              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-              <span className="text-slate-300 truncate">{item.name}: <strong className="text-white">{item.value}</strong></span>
+            <div key={idx} className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+              <span className="text-slate-400 truncate">{item.name}: <strong className="text-white">{item.value}</strong></span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Chart 2: Bar Chart - Detected Algorithms */}
-      <div className="glass-panel p-6 rounded-2xl border border-purple-500/30 space-y-4">
+      <div className="glass-panel p-6 rounded-3xl border border-white/6 space-y-4">
         <h3 className="text-sm font-bold font-mono text-white tracking-wider flex items-center justify-between">
           <span>DETECTED ALGORITHMS INVENTORY</span>
           <span className="text-xs text-slate-400 font-normal">Asset Counts</span>
@@ -120,7 +120,7 @@ export const RiskCharts: React.FC<RiskChartsProps> = ({ findings, assetCounts })
           </ResponsiveContainer>
         </div>
 
-        <div className="text-xs font-mono text-slate-400 pt-2 border-t border-slate-800 text-center">
+        <div className="text-[11px] font-mono text-slate-400 pt-3 border-t border-white/5 text-center">
           Total Cryptographic Primitives Audited: <strong className="text-cyan-400">{findings.length}</strong>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ScanResult, ScanHistoryItem, DemoProjectInfo } from '../types/scan';
+import { ScanResult, ScanHistoryItem, DemoProjectInfo, BBM92SimulationResult } from '../types/scan';
 
 const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const API_BASE = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:8000/api' : '/api');
@@ -62,3 +62,45 @@ export const deleteScanRecord = async (scanId: string): Promise<void> => {
 export const getPdfReportUrl = (scanId: string): string => {
   return `${API_BASE}/scan/${scanId}/report.pdf`;
 };
+
+export const runShorSimulation = async (targetNumber: number = 15, coprimeA: number = 7, shots: number = 1024) => {
+  const formData = new FormData();
+  formData.append('target_number', targetNumber.toString());
+  formData.append('coprime_a', coprimeA.toString());
+  formData.append('shots', shots.toString());
+
+  const res = await axios.post(`${API_BASE}/quantum/shor`, formData);
+  return res.data;
+};
+
+export const runGroverSimulation = async (targetState: string = '101', shots: number = 1024) => {
+  const formData = new FormData();
+  formData.append('target_state', targetState);
+  formData.append('shots', shots.toString());
+
+  const res = await axios.post(`${API_BASE}/quantum/grover`, formData);
+  return res.data;
+};
+
+export const fetchQuantumAnalysis = async (scanId: string) => {
+  const res = await axios.get(`${API_BASE}/quantum/analysis/${scanId}`);
+  return res.data;
+};
+
+export const runBBM92Simulation = async (
+  pairCount: number = 50,
+  scenario: 'ideal' | 'eve' | 'noisy' = 'ideal',
+  noiseRate: number = 0.08,
+  eveInterceptProb: number = 1.0,
+  testFraction: number = 0.35
+): Promise<BBM92SimulationResult> => {
+  const res = await axios.post(`${API_BASE}/quantum/bbm92/run`, {
+    pair_count: pairCount,
+    scenario,
+    noise_rate: noiseRate,
+    eve_intercept_prob: eveInterceptProb,
+    test_fraction: testFraction,
+  });
+  return res.data;
+};
+

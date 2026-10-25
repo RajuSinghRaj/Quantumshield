@@ -2,7 +2,7 @@ import os
 import uuid
 import datetime
 from typing import List, Optional
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Response
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -12,6 +12,11 @@ from .scanner.file_processor import FileProcessor
 from .crypto_engine.detector import CryptoDetector
 from .crypto_engine.tls_domain_scanner import scan_domain_tls
 from .quantum_engine.threat_analyzer import analyze_all_findings
+from .quantum_engine.shor_simulator import run_shor_simulation
+from .quantum_engine.grover_simulator import run_grover_simulation
+from .quantum_engine.bbm92_simulator import run_bbm92_simulation
+from .quantum_engine.schemas import BBM92SimulationRequest, BBM92SimulationResponse
+from .quantum_engine.circuit_utils import is_qiskit_available
 from .risk_engine.scoring import calculate_quantum_scores
 from .recommendation_engine.pqc_advisor import generate_migration_roadmap
 from .report_engine.pdf_generator import generate_pdf_report
@@ -337,3 +342,127 @@ def delete_scan_record(scan_id: str, db: Session = Depends(get_db)):
     db.delete(rec)
     db.commit()
     return {"message": f"Scan {scan_id} deleted successfully."}
+
+# ==================== QUANTUM SIMULATION MODULE ENDPOINTS ====================
+
+@app.post("/api/quantum/shor")
+def trigger_shor_simulation(
+    target_number: Optional[int] = Form(15),
+    coprime_a: Optional[int] = Form(7),
+    shots: Optional[int] = Form(1024)
+):
+    """Execute live Qiskit Shor's algorithm simulation for toy RSA target (N=15)."""
+    return run_shor_simulation(N=target_number or 15, a=coprime_a or 7, shots=shots or 1024)
+
+@app.post("/api/quantum/grover")
+def trigger_grover_simulation(
+    target_state: Optional[str] = Form("101"),
+    shots: Optional[int] = Form(1024)
+):
+    """Execute live Qiskit Grover's algorithm simulation for symmetric key space search."""
+    return run_grover_simulation(target_state=target_state or "101", shots=shots or 1024)
+
+@app.post("/api/quantum/bbm92/run")
+@app.post("/quantum/bbm92/run")
+async def trigger_bbm92_simulation(request: Request):
+    """
+    Execute live BBM92 entanglement-based Quantum Key Distribution (QKD) simulation using Qiskit Aer.
+    Accepts JSON body, form data, or query parameters.
+    """
+    pair_count = 50
+    scenario = "ideal"
+    noise_rate = 0.08
+    eve_intercept_prob = 1.0
+    test_fraction = 0.35
+
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        try:
+            data = await request.json()
+            if isinstance(data, dict):
+                if "pair_count" in data and data["pair_count"] is not None:
+                    pair_count = int(data["pair_count"])
+                if "scenario" in data and data["scenario"] is not None:
+                    scenario = str(data["scenario"])
+                if "noise_rate" in data and data["noise_rate"] is not None:
+                    noise_rate = float(data["noise_rate"])
+                if "eve_intercept_prob" in data and data["eve_intercept_prob"] is not None:
+                    eve_intercept_prob = float(data["eve_intercept_prob"])
+                if "test_fraction" in data and data["test_fraction"] is not None:
+                    test_fraction = float(data["test_fraction"])
+        except Exception:
+            pass
+    elif "form" in content_type:
+        try:
+            form = await request.form()
+            if "pair_count" in form and form["pair_count"]:
+                pair_count = int(form["pair_count"])
+            if "scenario" in form and form["scenario"]:
+                scenario = str(form["scenario"])
+            if "noise_rate" in form and form["noise_rate"]:
+                noise_rate = float(form["noise_rate"])
+            if "eve_intercept_prob" in form and form["eve_intercept_prob"]:
+                eve_intercept_prob = float(form["eve_intercept_prob"])
+            if "test_fraction" in form and form["test_fraction"]:
+                test_fraction = float(form["test_fraction"])
+        except Exception:
+            pass
+    else:
+        params = request.query_params
+        if "pair_count" in params and params["pair_count"]:
+            pair_count = int(params["pair_count"])
+        if "scenario" in params and params["scenario"]:
+            scenario = str(params["scenario"])
+        if "noise_rate" in params and params["noise_rate"]:
+            noise_rate = float(params["noise_rate"])
+        if "eve_intercept_prob" in params and params["eve_intercept_prob"]:
+            eve_intercept_prob = float(params["eve_intercept_prob"])
+        if "test_fraction" in params and params["test_fraction"]:
+            test_fraction = float(params["test_fraction"])
+
+    return run_bbm92_simulation(
+        pair_count=pair_count,
+        scenario=scenario,
+        noise_rate=noise_rate,
+        eve_intercept_prob=eve_intercept_prob,
+        test_fraction=test_fraction
+    )
+
+
+@app.get("/api/quantum/analysis/{scan_id}")
+def get_quantum_analysis(scan_id: str, db: Session = Depends(get_db)):
+    """Retrieve detailed quantum risk analysis and available Qiskit simulation parameters for a scan."""
+    scan_data = get_scan_result(scan_id, db)
+    findings = scan_data.get("findings", [])
+
+    shor_targets = []
+    grover_targets = []
+
+    for f in findings:
+        algo = f.get("algorithm", "").upper()
+        if algo in {"RSA", "ECC", "ECDSA", "ECDH", "DH", "DSA"}:
+            shor_targets.append({
+                "algorithm": algo,
+                "variant": f.get("variant"),
+                "file_path": f.get("file_path"),
+                "suggested_n": 15,
+                "suggested_a": 7
+            })
+        elif algo in {"AES", "SHA-256", "DES", "3DES"}:
+            grover_targets.append({
+                "algorithm": algo,
+                "variant": f.get("variant"),
+                "file_path": f.get("file_path"),
+                "suggested_target_state": "101"
+            })
+
+    return {
+        "scan_id": scan_id,
+        "qiskit_available": is_qiskit_available(),
+        "shor_applicable_count": len(shor_targets),
+        "grover_applicable_count": len(grover_targets),
+        "shor_targets": shor_targets,
+        "grover_targets": grover_targets,
+        "overall_quantum_score": scan_data.get("scores", {}).get("quantum_score", 0)
+    }
+

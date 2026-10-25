@@ -8,6 +8,7 @@ import { QuantumScanAnimation } from './components/QuantumScanAnimation';
 import { MigrationRoadmap } from './components/MigrationRoadmap';
 import { EducationModule } from './components/EducationModule';
 import { ScanHistoryTable } from './components/ScanHistoryTable';
+import { QuantumLabPage } from './pages/QuantumLabPage';
 
 import {
   checkApiHealth,
@@ -24,7 +25,41 @@ import {
 import { ScanResult, ScanHistoryItem, DemoProjectInfo } from './types/scan';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<string>('home');
+  const getInitialTab = () => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (hash === 'lab' || hash === 'quantum-lab' || hash === 'quantum') return 'quantum-lab';
+      if (['home', 'scanner', 'dashboard', 'inventory', 'migration', 'education', 'history'].includes(hash)) {
+        return hash;
+      }
+      const path = window.location.pathname.replace('/', '').toLowerCase();
+      if (path === 'lab' || path === 'quantum-lab' || path === 'quantum') return 'quantum-lab';
+    }
+    return 'home';
+  };
+
+  const [activeTab, setActiveTabState] = useState<string>(getInitialTab);
+
+  const setActiveTab = (tab: string) => {
+    setActiveTabState(tab);
+    if (typeof window !== 'undefined') {
+      window.location.hash = tab;
+    }
+  };
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (hash === 'lab' || hash === 'quantum-lab' || hash === 'quantum') {
+        setActiveTabState('quantum-lab');
+      } else if (['home', 'scanner', 'dashboard', 'inventory', 'migration', 'education', 'history'].includes(hash)) {
+        setActiveTabState(hash);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   const [isBackendHealthy, setIsBackendHealthy] = useState<boolean>(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [demoProjects, setDemoProjects] = useState<DemoProjectInfo[]>([]);
@@ -83,7 +118,12 @@ export function App() {
       setScanHistory(history);
       setActiveTab('dashboard');
     } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || 'Domain TLS scan failed.');
+      setErrorMessage(
+        err.response?.data?.detail ||
+        (err.request
+          ? 'Cannot reach the scanner API. Start the backend service and try again.'
+          : err.message || 'Domain TLS scan failed.')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -137,7 +177,7 @@ export function App() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${isDarkMode ? 'theme-dark' : 'theme-light'}`}>
+    <div className={`app-root min-h-screen flex flex-col transition-colors duration-300 ${isDarkMode ? 'theme-dark' : 'theme-light'}`}>
       
       {/* Top Navbar */}
       <Navbar
@@ -190,6 +230,10 @@ export function App() {
                 scanResult={currentScanResult}
                 onNewScan={() => setActiveTab('scanner')}
               />
+            )}
+
+            {activeTab === 'quantum-lab' && (
+              <QuantumLabPage />
             )}
 
             {activeTab === 'migration' && (
