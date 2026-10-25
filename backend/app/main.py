@@ -40,7 +40,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def root():
+    return {
+        "status": "online",
+        "service": "QuantumShield Security Engine API",
+        "health": "/api/health",
+        "docs": "/docs"
+    }
+
 @app.get("/api/health")
+
 def health_check():
     return {
         "status": "healthy",
