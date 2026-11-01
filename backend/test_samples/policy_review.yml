@@ -1,0 +1,10 @@
+
+version: '2.0'
+project_name: 'Review Test'
+gate:
+  thresholds:
+    min_quantum_readiness_score: 0.0
+    require_cbom: true
+policies:
+  rule_flag_sha1:
+    enforcement: MANUAL_REVIEW_REQUIRED

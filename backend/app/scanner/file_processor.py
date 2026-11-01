@@ -10,8 +10,18 @@ ALLOWED_EXTENSIONS = {
     '.py', '.java', '.js', '.ts', '.jsx', '.tsx', '.c', '.cpp', '.h', '.hpp', '.go', '.rs', '.cs', '.php', '.rb',
     # Crypto/certs
     '.pem', '.crt', '.cer', '.csr', '.pub',
-    # Configs
-    '.json', '.yaml', '.yml', '.conf', '.config', '.ini', '.env'
+    # Configs and manifests
+    '.json', '.yaml', '.yml', '.conf', '.config', '.ini', '.env',
+    '.toml', '.lock', '.xml', '.gradle', '.kts', '.mod', '.sum', '.txt'
+}
+
+MANIFEST_NAMES = {
+    'requirements.txt', 'pipfile', 'pipfile.lock', 'pyproject.toml', 'poetry.lock',
+    'package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
+    'pom.xml', 'build.gradle', 'build.gradle.kts',
+    'go.mod', 'go.sum',
+    'cargo.toml', 'cargo.lock',
+    'cmakelists.txt', 'vcpkg.json', 'conanfile.txt', 'conanfile.py', 'dockerfile', 'makefile'
 }
 
 IGNORE_DIRS = {
@@ -37,6 +47,11 @@ def sanitize_file_path(base_dir: str, target_path: str) -> str:
         raise ValueError("Path traversal attempt detected!")
     return abs_target
 
+# Security extraction bounds
+MAX_ZIP_ENTRIES = 2000
+MAX_TOTAL_EXTRACTED_BYTES = 100 * 1024 * 1024  # 100 MB
+MAX_SINGLE_FILE_BYTES = 10 * 1024 * 1024       # 10 MB
+
 class FileProcessor:
     @staticmethod
     def process_zip(zip_bytes: bytes) -> Tuple[str, List[Dict[str, Any]]]:
@@ -50,9 +65,29 @@ class FileProcessor:
         extract_dir = os.path.join(temp_dir, "extracted")
         os.makedirs(extract_dir, exist_ok=True)
         
+        total_extracted_bytes = 0
+        extracted_files_count = 0
+
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             for member in zip_ref.infolist():
-                # Security check against zip slip
+                # 1. Check entry count limit (Zip Bomb Guard)
+                if extracted_files_count >= MAX_ZIP_ENTRIES:
+                    break
+
+                # 2. Check total decompressed size limit (Zip Bomb Guard)
+                if total_extracted_bytes + member.file_size > MAX_TOTAL_EXTRACTED_BYTES:
+                    break
+
+                # 3. Check individual file size limit
+                if member.file_size > MAX_SINGLE_FILE_BYTES:
+                    continue
+
+                # 4. Check for POSIX symlinks (Symlink Guard)
+                is_symlink = ((member.external_attr >> 16) & 0o120000) == 0o120000
+                if is_symlink:
+                    continue
+
+                # 5. Security check against zip slip (Path Traversal Guard)
                 filename = member.filename
                 if ".." in filename or filename.startswith("/") or filename.startswith("\\"):
                     continue
@@ -60,6 +95,8 @@ class FileProcessor:
                 try:
                     sanitize_file_path(extract_dir, target_file)
                     zip_ref.extract(member, extract_dir)
+                    total_extracted_bytes += member.file_size
+                    extracted_files_count += 1
                 except Exception:
                     continue
                     
@@ -77,7 +114,7 @@ class FileProcessor:
             
             for file in files:
                 ext = os.path.splitext(file)[1].lower()
-                if ext in ALLOWED_EXTENSIONS or file.lower() in {'dockerfile', 'makefile'}:
+                if ext in ALLOWED_EXTENSIONS or file.lower() in MANIFEST_NAMES or file.lower().startswith('requirements'):
                     full_path = os.path.join(root, file)
                     rel_path = os.path.relpath(full_path, dir_path)
                     

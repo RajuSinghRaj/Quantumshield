@@ -246,7 +246,7 @@ def run_bbm92_simulation(
 
         # 3. Execute circuits in Qiskit Aer
         transpiled_circs = transpile(circuits, sim)
-        job = sim.run(transpiled_circs, shots=1)
+        job = sim.run(transpiled_circs, shots=1, seed_simulator=random_seed)
         sim_result = job.result()
 
         # 4. Extract Measurement Outcomes
@@ -622,3 +622,47 @@ def run_bbm92_simulation(
             "simulation_available": False,
             "limitations": f"Execution error: {str(err)}"
         }
+
+
+class BBM92Simulator:
+    """Object-oriented interface for BBM92 Entanglement-based QKD Simulator."""
+
+    def __init__(
+        self,
+        num_pairs: int = 100,
+        test_fraction: float = 0.3,
+        error_threshold: float = 0.11,
+        seed: Optional[int] = None
+    ):
+        self.num_pairs = num_pairs
+        self.test_fraction = test_fraction
+        self.error_threshold = error_threshold
+        self.seed = seed
+
+    def run_simulation(
+        self,
+        eve_present: bool = False,
+        noise_level: float = 0.0,
+        num_pairs: Optional[int] = None,
+        test_fraction: Optional[float] = None,
+        seed: Optional[int] = None
+    ) -> Dict[str, Any]:
+        scenario = "eve" if eve_present else ("noisy" if noise_level > 0.0 else "ideal")
+        actual_seed = seed if seed is not None else self.seed
+        res = run_bbm92_simulation(
+            pair_count=num_pairs or self.num_pairs,
+            scenario=scenario,
+            noise_rate=noise_level,
+            eve_intercept_prob=1.0 if eve_present else 0.0,
+            test_fraction=test_fraction or self.test_fraction,
+            random_seed=actual_seed
+        )
+        # Add convenient alias fields for tests and clients
+        qber_val = res.get("measured_qber", 0.0)
+        res["qber"] = qber_val
+        res["matching_bases_count"] = res.get("matched_bases_count", 0)
+        res["sifted_key_length"] = res.get("matched_bases_count", 0)
+        res["eve_detected"] = (res.get("status") == "COMPLETED_ABORTED" or qber_val >= res.get("threshold_qber", 0.11))
+        res["final_key"] = res.get("candidate_key_preview", "") if res.get("status") == "COMPLETED_SECURE" else ""
+        res["correlation_rate"] = round(1.0 - qber_val, 4)
+        return res

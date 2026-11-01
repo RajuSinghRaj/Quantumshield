@@ -1,0 +1,67 @@
+# ==============================================================================
+# QuantumShield 2.0 — Azure DevOps Cryptographic Security Pipeline
+# ==============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+      - master
+      - develop
+
+pr:
+  branches:
+    include:
+      - main
+      - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: quantumshield-secrets # Configured in Azure DevOps Library containing QUANTUMSHIELD_API_URL / TOKEN
+
+steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.11'
+      addToPath: true
+    displayName: 'Set up Python 3.11'
+
+  - script: |
+      python -m pip install --upgrade pip
+      pip install pyyaml pydantic requests
+    displayName: 'Install QuantumShield Dependencies'
+
+  - script: |
+      echo "Executing QuantumShield DevSecOps CI/CD Security Gate..."
+      # Run evaluation against quantumshield.yml
+      # Exit code 1 on blocking policy failure
+      python backend/quantumshield_cli.py devsecops evaluate . \
+        --policy quantumshield.yml \
+        --output $(Build.ArtifactStagingDirectory)/security-assessment.json
+
+      # Export CycloneDX 1.6 CBOM
+      python backend/quantumshield_cli.py cbom export . \
+        --output $(Build.ArtifactStagingDirectory)/cbom-cyclonedx-1.6.json
+    displayName: 'QuantumShield Cryptographic Security Gate Evaluation'
+    env:
+      QUANTUMSHIELD_API_URL: $(QUANTUMSHIELD_API_URL)
+      QUANTUMSHIELD_API_TOKEN: $(QUANTUMSHIELD_API_TOKEN)
+
+  - task: PublishBuildArtifacts@1
+    condition: always()
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/cbom-cyclonedx-1.6.json'
+      ArtifactName: 'QuantumShield-CBOM'
+      publishLocation: 'Container'
+    displayName: 'Publish CycloneDX 1.6 CBOM Artifact'
+
+  - task: PublishBuildArtifacts@1
+    condition: always()
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/security-assessment.json'
+      ArtifactName: 'QuantumShield-SecurityAssessment'
+      publishLocation: 'Container'
+    displayName: 'Publish Security Assessment Artifact'
+

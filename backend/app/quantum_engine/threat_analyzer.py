@@ -18,15 +18,29 @@ def analyze_asset_security(asset: Dict[str, Any]) -> Dict[str, Any]:
 
     # Classical Risk calculation
     classical_risk = "SAFE"
-    if algo == "RSA" and key_size <= 1024:
-        classical_risk = "CRITICAL"
+    if algo == "RSA":
+        if key_size <= 1024:
+            classical_risk = "CRITICAL"
+        elif key_size < 2048:
+            classical_risk = "HIGH"
+        else:
+            classical_risk = "SAFE"
     elif algo in {"MD5", "DES", "RC4"}:
         classical_risk = "CRITICAL"
     elif algo in {"SHA-1", "3DES"}:
         classical_risk = "HIGH"
     elif algo == "AES" and "ECB" in variant:
         classical_risk = "CRITICAL"
-    elif algo in {"ML-KEM", "ML-DSA", "SLH-DSA"} or "KYBER" in algo or "DILITHIUM" in algo:
+    elif algo == "HMAC":
+        if "MD5" in variant:
+            classical_risk = "HIGH"
+        elif "SHA1" in variant or "SHA-1" in variant:
+            classical_risk = "MEDIUM"
+        else:
+            classical_risk = "SAFE"
+    elif algo in {"DH", "DIFFIE-HELLMAN", "DSA"} and key_size < 2048:
+        classical_risk = "HIGH"
+    elif algo in {"ML-KEM", "ML-DSA", "SLH-DSA"} or "KYBER" in algo or "DILITHIUM" in algo or "SPHINCS" in algo:
         classical_risk = "SAFE"
 
     # Define Simulation Offer payload if applicable
@@ -61,15 +75,21 @@ def analyze_asset_security(asset: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 def analyze_all_findings(raw_assets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Enrich all detected assets with classical and quantum security analysis."""
+    """Enrich all detected assets with classical and quantum security analysis, preserving metadata."""
     enriched_findings = []
-    
+
     for asset in raw_assets:
         analysis = analyze_asset_security(asset)
         finding = {**asset, **analysis}
-        
+
         # Build clean title
         finding["title"] = f"{finding.get('variant', 'Crypto Primitives')} — {finding.get('usage', 'General').replace('_', ' ').title()}"
+
+        # Ensure consistent metadata fields
+        finding["library_or_api"] = finding.get("library_or_api") or finding.get("source") or "Standard Cryptography API"
+        finding["detection_method"] = finding.get("detection_method") or finding.get("source") or "Static Code Inspection"
+        finding["curve_or_parameters"] = finding.get("curve_or_parameters") or str(finding.get("key_size", "N/A"))
+
         enriched_findings.append(finding)
-        
+
     return enriched_findings

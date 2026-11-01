@@ -1,0 +1,8 @@
+
+version: '2.0'
+exceptions:
+  - rule_id: rule_reject_md5
+    file_path: vulnerable_app.py
+    reason: 'Temporary exception that expired last year'
+    approved_by: 'CISO'
+    expires_at: '2024-01-01'

@@ -9,6 +9,9 @@ import { MigrationRoadmap } from './components/MigrationRoadmap';
 import { EducationModule } from './components/EducationModule';
 import { ScanHistoryTable } from './components/ScanHistoryTable';
 import { QuantumLabPage } from './pages/QuantumLabPage';
+import { PqcRemediationSandbox } from './components/PqcRemediationSandbox';
+import { DevSecOpsDashboard } from './components/DevSecOpsDashboard';
+import { RefreshCw, Terminal, Sparkles } from 'lucide-react';
 
 import {
   checkApiHealth,
@@ -29,11 +32,18 @@ export function App() {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '').toLowerCase();
       if (hash === 'lab' || hash === 'quantum-lab' || hash === 'quantum') return 'quantum-lab';
-      if (['home', 'scanner', 'dashboard', 'inventory', 'migration', 'education', 'history'].includes(hash)) {
-        return hash;
+      if (hash === 'reports') return 'dashboard';
+      if (hash === 'learn') return 'education';
+      if (['home', 'scanner', 'dashboard', 'reports', 'inventory', 'migration', 'devsecops', 'education', 'learn', 'history'].includes(hash)) {
+        return hash === 'reports' ? 'dashboard' : (hash === 'learn' ? 'education' : hash);
       }
       const path = window.location.pathname.replace('/', '').toLowerCase();
       if (path === 'lab' || path === 'quantum-lab' || path === 'quantum') return 'quantum-lab';
+      if (path === 'reports') return 'dashboard';
+      if (path === 'learn') return 'education';
+      if (['home', 'scanner', 'dashboard', 'reports', 'inventory', 'migration', 'devsecops', 'education', 'learn', 'history'].includes(path)) {
+        return path === 'reports' ? 'dashboard' : (path === 'learn' ? 'education' : path);
+      }
     }
     return 'home';
   };
@@ -41,9 +51,10 @@ export function App() {
   const [activeTab, setActiveTabState] = useState<string>(getInitialTab);
 
   const setActiveTab = (tab: string) => {
-    setActiveTabState(tab);
+    const normalizedTab = tab === 'reports' ? 'dashboard' : (tab === 'learn' ? 'education' : tab);
+    setActiveTabState(normalizedTab);
     if (typeof window !== 'undefined') {
-      window.location.hash = tab;
+      window.location.hash = normalizedTab;
     }
   };
 
@@ -52,8 +63,8 @@ export function App() {
       const hash = window.location.hash.replace('#', '').toLowerCase();
       if (hash === 'lab' || hash === 'quantum-lab' || hash === 'quantum') {
         setActiveTabState('quantum-lab');
-      } else if (['home', 'scanner', 'dashboard', 'inventory', 'migration', 'education', 'history'].includes(hash)) {
-        setActiveTabState(hash);
+      } else if (['home', 'scanner', 'dashboard', 'reports', 'inventory', 'migration', 'devsecops', 'education', 'learn', 'history'].includes(hash)) {
+        setActiveTabState(hash === 'reports' ? 'dashboard' : (hash === 'learn' ? 'education' : hash));
       }
     };
     window.addEventListener('hashchange', handleHashChange);
@@ -62,6 +73,16 @@ export function App() {
 
   const [isBackendHealthy, setIsBackendHealthy] = useState<boolean>(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('theme-dark', 'dark');
+      document.documentElement.classList.remove('theme-light');
+    } else {
+      document.documentElement.classList.add('theme-light');
+      document.documentElement.classList.remove('theme-dark', 'dark');
+    }
+  }, [isDarkMode]);
   const [demoProjects, setDemoProjects] = useState<DemoProjectInfo[]>([]);
   const [currentScanResult, setCurrentScanResult] = useState<ScanResult | null>(null);
   const [scanHistory, setScanHistory] = useState<ScanHistoryItem[]>([]);
@@ -87,8 +108,17 @@ export function App() {
         try {
           const history = await fetchScanHistory();
           setScanHistory(history);
+          if (history && history.length > 0) {
+            const latest = await fetchScanResult(history[0].id);
+            setCurrentScanResult(latest);
+          } else {
+            const demoResult = await scanDemoProject('legacy_bank');
+            setCurrentScanResult(demoResult);
+            const freshHistory = await fetchScanHistory();
+            setScanHistory(freshHistory);
+          }
         } catch (err) {
-          console.warn('Could not load history from backend');
+          console.warn('Could not load history or auto-seed demo from backend');
         }
       }
     };
@@ -108,12 +138,23 @@ export function App() {
         try {
           const history = await fetchScanHistory();
           setScanHistory(history);
+          if (history && history.length > 0 && !currentScanResult) {
+            const latest = await fetchScanResult(history[0].id);
+            setCurrentScanResult(latest);
+          }
         } catch {}
       }
     }, 6000);
 
     return () => clearInterval(intervalId);
   }, []);
+
+  // Ensure devsecops, migration, or dashboard tabs automatically load demo data if not yet loaded
+  useEffect(() => {
+    if (['devsecops', 'migration', 'dashboard', 'reports'].includes(activeTab) && !currentScanResult && !isLoading && isBackendHealthy) {
+      handleScanDemo('legacy_bank');
+    }
+  }, [activeTab, currentScanResult, isLoading, isBackendHealthy]);
 
 
   const handleScanFiles = async (files: File[], projectName: string) => {
@@ -161,7 +202,9 @@ export function App() {
       setCurrentScanResult(result);
       const history = await fetchScanHistory();
       setScanHistory(history);
-      setActiveTab('dashboard');
+      if (activeTab === 'home' || activeTab === 'scanner') {
+        setActiveTab('dashboard');
+      }
     } catch (err: any) {
       setErrorMessage(err.response?.data?.detail || 'Demo scan failed.');
     } finally {
@@ -233,8 +276,9 @@ export function App() {
             {activeTab === 'home' && (
               <LandingPage
                 onStartScan={() => setActiveTab('scanner')}
-                onExploreRisks={() => setActiveTab('education')}
+                onExploreRisks={() => setActiveTab('dashboard')}
                 onSelectDemo={handleScanDemo}
+                onNavigateTab={(tab) => setActiveTab(tab)}
                 scanResult={currentScanResult}
               />
             )}
@@ -249,7 +293,7 @@ export function App() {
               />
             )}
 
-            {(activeTab === 'dashboard' || activeTab === 'inventory') && (
+            {(activeTab === 'dashboard' || activeTab === 'reports' || activeTab === 'inventory') && (
               <DashboardPage
                 scanResult={currentScanResult}
                 onNewScan={() => setActiveTab('scanner')}
@@ -261,14 +305,30 @@ export function App() {
             )}
 
             {activeTab === 'migration' && (
-              <MigrationRoadmap
-                migrationPlan={currentScanResult?.migration_plan || []}
-                scanId={currentScanResult?.scan_id}
-                onDownloadPdf={currentScanResult ? handleDownloadPdf : undefined}
-              />
+              <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8 space-y-8">
+                <PqcRemediationSandbox
+                  scanId={currentScanResult?.scan_id || 'demo_legacy_bank'}
+                  projectName={currentScanResult?.project_name || 'Legacy Banking Monolith'}
+                  findings={currentScanResult?.findings || []}
+                />
+                <MigrationRoadmap
+                  migrationPlan={currentScanResult?.migration_plan || []}
+                  scanId={currentScanResult?.scan_id || 'demo_legacy_bank'}
+                  onDownloadPdf={handleDownloadPdf}
+                />
+              </div>
             )}
 
-            {activeTab === 'education' && (
+            {activeTab === 'devsecops' && (
+              <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8">
+                <DevSecOpsDashboard
+                  scanId={currentScanResult?.scan_id}
+                  projectName={currentScanResult?.project_name || 'Legacy Banking Monolith'}
+                />
+              </div>
+            )}
+
+            {(activeTab === 'education' || activeTab === 'learn') && (
               <EducationModule />
             )}
 

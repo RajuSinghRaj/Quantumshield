@@ -1,344 +1,285 @@
 import React from 'react';
 import {
   Shield, ArrowRight, Zap, FileCode, Lock, Globe, Upload, Folder,
-  CheckCircle2, Sparkles, Layers, Cpu, Code, ChevronRight, ShieldCheck,
-  Activity, AlertTriangle, TrendingUp,
+  CheckCircle2, Sparkles, Layers, Code, ChevronRight, ShieldCheck,
+  Activity, AlertTriangle, TrendingUp, RefreshCw, Terminal, Atom,
+  Gauge, Link2, BarChart2
 } from 'lucide-react';
-import { QuantumShield3D, BtcCoin3D, EthCrystal3D, SolBadge3D } from './HeroAssets';
+import { GeometricSphere3D } from './HeroAssets';
 import { ScanResult } from '../types/scan';
 
 interface HeroProps {
   onStartScan: () => void;
   onExploreRisks: () => void;
   onSelectDemo: (demoId: string) => void;
+  onNavigateTab?: (tab: string) => void;
   scanResult?: ScanResult | null;
 }
 
 export const Hero: React.FC<HeroProps> = ({
-  onStartScan, onExploreRisks, onSelectDemo, scanResult,
+  onStartScan, onExploreRisks, onSelectDemo, onNavigateTab, scanResult,
 }) => {
 
   const quantumScore   = scanResult ? Math.round(scanResult.scores.quantum_score)   : 72;
   const classicalScore = scanResult ? Math.round(scanResult.scores.classical_score) : 85;
   const pqcScore       = scanResult ? Math.round(scanResult.scores.pqc_score)       : 60;
-  const overallRisk    = scanResult ? scanResult.scores.overall_risk                : 'MEDIUM';
   const isRealData     = Boolean(scanResult);
 
-  const getRiskColor = (risk: string) => {
-    switch (risk.toUpperCase()) {
-      case 'CRITICAL': return 'text-rose-400';
-      case 'HIGH':     return 'text-amber-400';
-      case 'MEDIUM':   return 'text-amber-300';
-      default:         return 'text-emerald-400';
+  const handleModuleClick = (tab: string) => {
+    if (onNavigateTab) {
+      onNavigateTab(tab);
+    } else {
+      onStartScan();
     }
   };
-  const getScoreBadge = (score: number) => {
-    if (score >= 80) return { label: 'EXCELLENT', cls: 'text-emerald-400' };
-    if (score >= 65) return { label: 'GOOD',      cls: 'text-emerald-400' };
-    if (score >= 45) return { label: 'MODERATE',  cls: 'text-amber-400' };
-    return               { label: 'AT RISK',     cls: 'text-rose-400' };
-  };
-  const status = getScoreBadge(quantumScore);
 
-  const stars = [
-    { top: '8%',  left: '15%', delay: '0s'  },
-    { top: '12%', left: '80%', delay: '0.8s' },
-    { top: '40%', left: '8%',  delay: '1.4s' },
-    { top: '48%', left: '92%', delay: '0.4s' },
-    { top: '75%', left: '25%', delay: '1.8s' },
-    { top: '82%', left: '75%', delay: '1.1s' },
+  const quickActionCards = [
+    { id: 'dashboard',   title: 'Risk Analysis',        icon: BarChart2,    tab: 'dashboard' },
+    { id: 'migration',   title: 'Migration Sandbox',    icon: Layers,       tab: 'migration' },
+    { id: 'hybrid',      title: 'Hybrid Crypto',        icon: Link2,        tab: 'migration' },
+    { id: 'quantum-lab', title: 'Quantum Simulations',  icon: Atom,         tab: 'quantum-lab' },
   ];
 
-  const features = [
-    { icon: Shield,   color: 'text-indigo-400',  bg: 'bg-indigo-500/12', title: 'Deep Crypto Analysis',    sub: 'Detects 100+ algorithms & protocols' },
-    { icon: Cpu,      color: 'text-violet-400',   bg: 'bg-violet-500/12', title: 'Quantum Risk Detection',  sub: "Evaluates Shor's & Grover's threats" },
-    { icon: Sparkles, color: 'text-cyan-400',     bg: 'bg-cyan-500/12',   title: 'PQC Recommendations',    sub: 'Smart migration to FIPS 203/204' },
-    { icon: Layers,   color: 'text-indigo-300',   bg: 'bg-indigo-500/10', title: 'Actionable Reports',      sub: 'Detailed fix priority & PDF exports' },
-    { icon: Folder,   color: 'text-violet-300',   bg: 'bg-violet-500/10', title: 'Multi-Source Scanning',   sub: 'Supports code, certs, keys & ZIPs' },
+  const metricsShelf = [
+    {
+      icon: Code,
+      value: '11',
+      label: 'Integrated Modules',
+      tab: 'devsecops'
+    },
+    {
+      icon: ShieldCheck,
+      value: '128+',
+      label: 'Automated Tests',
+      tab: 'devsecops'
+    },
+    {
+      icon: Gauge,
+      value: '100%',
+      label: 'Test Coverage',
+      tab: 'devsecops'
+    },
+    {
+      icon: Shield,
+      value: 'PQC Ready',
+      label: 'NIST FIPS 203/204/205',
+      tab: 'migration'
+    },
   ];
 
   const scanActivity = [
-    { name: 'DeFi-Protocol.zip',  type: 'ZIP Archive',     icon: Folder,   status: 'scanning',   statusLabel: 'Scanning…',  statusCls: 'text-indigo-400' },
-    { name: 'auth_service.py',    type: 'Python File',      icon: Code,     status: 'done',       statusLabel: 'Complete',   statusCls: 'text-emerald-400' },
-    { name: 'certificate.pem',    type: 'X.509 Certificate', icon: Lock,   status: 'done',       statusLabel: 'Complete',   statusCls: 'text-emerald-400' },
-    { name: 'config.yaml',        type: 'YAML Config',      icon: FileCode, status: 'analyzing',  statusLabel: 'Analyzing…', statusCls: 'text-violet-400' },
+    { name: 'DeFi-Protocol.zip',  type: 'ZIP Archive',       icon: Folder,   status: 'scanning',  statusLabel: 'Scanning…',  statusCls: 'text-orange-600' },
+    { name: 'auth_service.py',    type: 'Python File',       icon: Code,     status: 'done',      statusLabel: 'Complete',   statusCls: 'text-emerald-600' },
+    { name: 'certificate.pem',    type: 'X.509 Certificate', icon: Lock,     status: 'done',      statusLabel: 'Complete',   statusCls: 'text-emerald-600' },
+    { name: 'config.yaml',        type: 'YAML Config',       icon: FileCode, status: 'analyzing', statusLabel: 'Analyzing…', statusCls: 'text-amber-600' },
   ];
 
   return (
-    <div className="relative py-10 lg:py-16 space-y-14 overflow-hidden w-full">
+    <div className="relative py-6 sm:py-10 lg:py-12 space-y-10 overflow-hidden w-full bg-[#faf7f2] dark:bg-stone-950 transition-colors">
 
-      {/* Ambient background lighting */}
+      {/* Ambient background warm glows matching screenshot #4 */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-indigo-600/8 blur-3xl" />
-        <div className="absolute top-1/3 right-0 w-80 h-80 rounded-full bg-violet-600/6 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full bg-cyan-500/5 blur-3xl" />
+        <div className="absolute top-10 left-1/3 w-[520px] h-[520px] rounded-full bg-orange-300/15 dark:bg-orange-950/20 blur-[130px]" />
+        <div className="absolute top-1/4 right-10 w-[420px] h-[420px] rounded-full bg-amber-400/15 dark:bg-amber-900/15 blur-[110px]" />
+        <div className="absolute bottom-10 left-10 w-96 h-96 rounded-full bg-orange-200/20 dark:bg-orange-950/15 blur-[100px]" />
       </div>
 
-      {/* Background star particles */}
-      {stars.map((s, i) => (
-        <div
-          key={i}
-          className="absolute text-indigo-400 opacity-40 animate-star-twinkle pointer-events-none text-sm select-none"
-          style={{ top: s.top, left: s.left, animationDelay: s.delay }}
-        >✦</div>
-      ))}
-
       {/* ================================================================
-          TOP HERO — 12-col grid
+          HERO MAIN SECTION — EXACT MATCH TO SCREENSHOT #4
           ================================================================ */}
       <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center min-h-[460px]">
 
-          {/* ── Left: headline + CTAs ── */}
-          <div className="lg:col-span-4 space-y-7 animate-fade-up">
+          {/* ── Left Column: Headline, Subtitle & Action Buttons (col-span-5) ── */}
+          <div className="lg:col-span-5 space-y-5 sm:space-y-6 animate-fade-up">
 
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wider
-                            text-indigo-300 bg-indigo-500/10 border border-indigo-500/25">
-              <Zap className="w-3.5 h-3.5 text-indigo-400 fill-current" />
-              <span>Next-Gen Quantum Crypto Security</span>
+            {/* Pill Badge: Cryptographic Risk & Migration Platform */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide
+                            text-orange-700 dark:text-orange-300 bg-orange-100/90 dark:bg-orange-950/60 border border-orange-200/80 dark:border-orange-800/40 shadow-xs">
+              <Zap className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 fill-current" />
+              <span>Cryptographic Risk & Migration Platform</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl xl:text-[3.4rem] font-black tracking-tight leading-[1.06] text-white">
-              SECURE TODAY.{' '}<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400">
-                READY FOR THE QUANTUM ERA.
+            {/* Large Two-Tone Heading */}
+            <h1 className="text-4xl sm:text-5xl lg:text-[52px] font-black tracking-tight leading-[1.08] text-stone-900 dark:text-stone-50">
+              From Classical to<br />
+              <span className="text-orange-600 dark:text-orange-400 drop-shadow-[0_0_12px_rgba(249,115,22,0.3)]">
+                Post-Quantum Security
               </span>
             </h1>
 
-            <p className="text-slate-400 text-[15px] leading-relaxed max-w-lg">
-              QuantumShield analyzes your code, certificates, and infrastructure to detect cryptographic vulnerabilities and evaluate post-quantum readiness.
+            {/* Subtitle */}
+            <p className="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed max-w-md font-normal">
+              End-to-end analysis, risk evaluation and migration for a quantum-resilient future.
             </p>
 
-            <div className="flex flex-wrap items-center gap-3 pt-1">
+            {/* Action Buttons: Start Scan -> & View Reports */}
+            <div className="flex flex-wrap items-center gap-3.5 pt-2">
               <button
                 onClick={onStartScan}
-                className="btn-primary text-[13px] px-6 py-3 rounded-xl"
+                className="bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm px-7 py-3.5 rounded-full flex items-center gap-2 shadow-lg shadow-orange-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                <span>Start New Scan</span>
-                <ArrowRight className="w-4 h-4" />
+                <span className="text-white">Start Scan</span>
+                <ArrowRight className="w-4 h-4 text-white" />
               </button>
               <button
-                onClick={onExploreRisks}
-                className="btn-secondary text-[13px] px-6 py-3 rounded-xl"
+                onClick={() => handleModuleClick('dashboard')}
+                className="bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-700 font-semibold text-sm px-6 py-3.5 rounded-full shadow-xs transition-all hover:scale-[1.02]"
               >
-                <span>Explore Quantum Risks</span>
+                <span>View Reports</span>
               </button>
             </div>
 
-            {/* Trust indicators */}
-            <div className="flex items-center gap-4 pt-2 text-[11px] text-slate-500 font-mono">
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> NIST FIPS 203/204</span>
-              <span className="flex items-center gap-1.5"><Lock className="w-3 h-3 text-indigo-400" /> Zero Key Retention</span>
-              <span className="flex items-center gap-1.5"><Activity className="w-3 h-3 text-cyan-400" /> Real-time Analysis</span>
+            {/* Secondary Trust indicators */}
+            <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-stone-500 dark:text-stone-400 font-medium">
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> NIST FIPS 203/204/205</span>
+              <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" /> Zero Key Retention</span>
+              <span className="flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> DevSecOps Gated</span>
             </div>
           </div>
 
-          {/* ── Centre: 3D hologram ── */}
-          <div className="lg:col-span-5 relative flex items-center justify-center min-h-[400px] lg:min-h-[460px]">
-
-            {/* Glow ring behind shield */}
-            <div className="absolute w-64 h-64 rounded-full border border-indigo-500/15 animate-spin-slow" />
-            <div className="absolute w-80 h-80 rounded-full border border-violet-500/10 animate-spin-reverse" />
-
-            <QuantumShield3D />
-
-            {/* Floating assets */}
-            <div className="absolute top-2 left-6 z-20 animate-float-slow cursor-pointer hover:scale-110 transition-transform">
-              <BtcCoin3D />
-            </div>
-            <div className="absolute top-4 right-8 z-20 animate-float-reverse cursor-pointer hover:scale-110 transition-transform">
-              <EthCrystal3D />
-            </div>
-            <div className="absolute bottom-10 right-4 z-20 animate-float-slow cursor-pointer hover:scale-110 transition-transform">
-              <SolBadge3D />
-            </div>
-
-            {/* Floating file tags */}
-            <div className="absolute top-20 left-2 z-10 px-3 py-1.5 rounded-xl glass-card text-xs font-mono text-indigo-300 border border-indigo-500/30 flex items-center gap-2 shadow-md animate-float-reverse">
-              <Code className="w-3.5 h-3.5 text-indigo-400" />
-              <span>main.py</span>
-            </div>
-            <div className="absolute bottom-16 left-4 z-10 px-3 py-1.5 rounded-xl glass-card text-xs font-mono text-violet-300 border border-violet-500/30 flex items-center gap-2 shadow-md animate-float-slow">
-              <Lock className="w-3.5 h-3.5 text-violet-400" />
-              <span>certificate.pem</span>
-            </div>
-            <div className="absolute top-24 right-4 z-10 px-3 py-1.5 rounded-xl glass-card text-xs font-mono text-cyan-300 border border-cyan-500/30 flex items-center gap-2 shadow-md animate-float-slow">
-              <FileCode className="w-3.5 h-3.5 text-cyan-400" />
-              <span>config.yaml</span>
-            </div>
+          {/* ── Middle Column: 3D Volumetric Wireframe Sphere with Smooth Particles (col-span-4) ── */}
+          <div className="lg:col-span-4 relative flex items-center justify-center min-h-[380px] sm:min-h-[420px]">
+            <GeometricSphere3D />
           </div>
 
-          {/* ── Right: quantum readiness score card ── */}
-          <div className="lg:col-span-3 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-            <div className="glass-card-indigo p-7 rounded-3xl space-y-6 shadow-2xl">
-
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-300 uppercase tracking-widest">
-                <span>Quantum Readiness</span>
-                {!isRealData && (
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/25">PREVIEW</span>
-                )}
-              </div>
-
-              {/* Gauge */}
-              <div className="flex flex-col items-center py-2">
-                <div className="relative w-40 h-40 flex items-center justify-center">
-                  <svg className="w-full h-full -rotate-90 drop-shadow-lg" viewBox="0 0 160 160">
-                    <circle cx="80" cy="80" r="66" stroke="rgba(99,102,241,0.12)" strokeWidth="10" fill="transparent" />
-                    <circle
-                      cx="80" cy="80" r="66"
-                      stroke="url(#gaugeGrad)"
-                      strokeWidth="10"
-                      strokeDasharray={`${2 * Math.PI * 66}`}
-                      strokeDashoffset={2 * Math.PI * 66 * (1 - quantumScore / 100)}
-                      strokeLinecap="round"
-                      fill="transparent"
-                      className="transition-all duration-1000 ease-out"
-                    />
-                    <defs>
-                      <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#6366f1" />
-                        <stop offset="100%" stopColor="#22d3ee" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div className="absolute flex flex-col items-center text-center">
-                    <span className="text-4xl font-black text-white tabular-nums">{quantumScore}</span>
-                    <span className="text-[11px] text-slate-400 font-semibold">/100</span>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider mt-1 ${status.cls}`}>
-                      {status.label}
+          {/* ── Right Column: 4 Vertically Stacked Cards (col-span-3) ── */}
+          <div className="lg:col-span-3 flex flex-col gap-3.5 justify-center">
+            {[
+              { id: 'dashboard',   title: 'Risk Analysis',        desc: 'Shor & Grover threat audit',    icon: BarChart2, tab: 'dashboard' },
+              { id: 'migration',   title: 'Migration Sandbox',    desc: 'NIST FIPS 203/204 diffs',       icon: Layers,    tab: 'migration' },
+              { id: 'hybrid',      title: 'Hybrid Crypto',        desc: 'X25519 + ML-KEM-768',          icon: Link2,     tab: 'migration' },
+              { id: 'quantum-lab', title: 'Quantum Simulations',  desc: 'Interactive Shor & BBM92',     icon: Atom,      tab: 'quantum-lab' },
+            ].map((card) => {
+              const Icon = card.icon;
+              return (
+                <button
+                  key={card.id}
+                  onClick={() => handleModuleClick(card.tab)}
+                  className="w-full bg-white dark:bg-stone-900 rounded-2xl p-4 flex items-center gap-3.5 border border-orange-100 dark:border-stone-800 shadow-sm hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500/50 transition-all group text-left"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Icon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-stone-800 dark:text-stone-100 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors block">
+                      {card.title}
+                    </span>
+                    <span className="text-[11px] text-stone-500 dark:text-stone-400">
+                      {card.desc}
                     </span>
                   </div>
-                </div>
-              </div>
-
-              {/* Score rows */}
-              <div className="space-y-3 text-[12px] font-semibold">
-                {[
-                  { label: 'Classical Security', value: classicalScore, color: 'text-emerald-400' },
-                  { label: 'Quantum Resistance',  value: quantumScore,   color: 'text-indigo-300' },
-                  { label: 'PQC Adoption',        value: pqcScore,       color: 'text-violet-300' },
-                ].map(r => (
-                  <div key={r.label} className="space-y-1">
-                    <div className="flex items-center justify-between text-slate-400">
-                      <span>{r.label}</span>
-                      <span className={`font-bold font-mono ${r.color}`}>{r.value}/100</span>
-                    </div>
-                    <div className="h-1 rounded-full bg-white/5 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700`}
-                        style={{ width: `${r.value}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-                <div className="flex items-center justify-between pt-2 border-t border-white/6 text-slate-400">
-                  <span>Overall Risk</span>
-                  <span className={`font-bold capitalize ${getRiskColor(overallRisk)}`}>{overallRisk}</span>
-                </div>
-              </div>
-
-              <button
-                onClick={onStartScan}
-                className="w-full flex items-center justify-between text-[11px] font-bold text-indigo-300 hover:text-indigo-200 pt-1 transition-colors"
-              >
-                <span>{isRealData ? 'View Active Report' : 'Run Audit to Calculate Live Score'}</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+                </button>
+              );
+            })}
           </div>
 
         </div>
       </div>
 
       {/* ================================================================
-          FEATURE CARDS BAR
+          BOTTOM METRICS SHELF — 4 HORIZONTAL WHITE CARDS (SCREENSHOT #4)
           ================================================================ */}
-      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 relative z-10">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {features.map(({ icon: Icon, color, bg, title, sub }) => (
-            <div
-              key={title}
-              className="glass-card glass-card-hover p-5 flex items-center gap-4 cursor-default"
-            >
-              <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-                <Icon className={`w-5 h-5 ${color}`} />
-              </div>
-              <div>
-                <h4 className="text-[13px] font-bold text-white leading-tight">{title}</h4>
-                <p className="text-[11px] text-slate-400 mt-0.5 leading-tight">{sub}</p>
-              </div>
-            </div>
-          ))}
+      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 relative z-10 -mt-2">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {metricsShelf.map((m, idx) => {
+            const Icon = m.icon;
+            return (
+              <button
+                key={idx}
+                onClick={() => handleModuleClick(m.tab)}
+                className="bg-white dark:bg-stone-900 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-orange-100 dark:border-stone-800 shadow-sm hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500/50 transition-all flex items-center gap-4 text-left group"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <Icon className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div>
+                  <div className="text-xl sm:text-2xl font-black text-stone-900 dark:text-stone-50 tracking-tight leading-none group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                    {m.value}
+                  </div>
+                  <div className="text-xs text-stone-500 dark:text-stone-400 mt-1 font-medium">
+                    {m.label}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* ================================================================
-          BOTTOM ROW: Upload zone + live activity
+          BOTTOM ROW: 1-Click Interactive Demo Scans + Quick Upload
           ================================================================ */}
       <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
 
-          {/* Upload zone */}
-          <div className="lg:col-span-7 glass-card p-10 rounded-3xl space-y-7">
+          {/* Quick Upload Zone & Demo Targets */}
+          <div className="lg:col-span-7 bg-white dark:bg-stone-900/90 p-6 sm:p-8 rounded-3xl border border-orange-100 dark:border-stone-800 shadow-sm space-y-6">
 
-            <div className="text-center space-y-3">
-              <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-indigo-600/25 to-violet-600/25 border border-indigo-500/30 flex items-center justify-center shadow-xl animate-glow-pulse">
-                <Upload className="w-10 h-10 text-indigo-300" />
+            <div className="text-center space-y-2">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200/60 dark:border-orange-800/40 flex items-center justify-center shadow-xs">
+                <Upload className="w-7 h-7 text-orange-600 dark:text-orange-400" />
               </div>
-              <h3 className="text-xl font-bold text-white">Drop your files here to start scanning</h3>
-              <p className="text-sm text-slate-400">Support for code, certificates, configs, keys, and archives</p>
-
-              <div className="flex flex-wrap justify-center gap-2 pt-1">
-                {['.py', '.java', '.js', '.ts', '.pem', '.crt', '.yml', '.zip', '+ More'].map(ext => (
-                  <span key={ext} className="px-3 py-1 rounded-lg text-[11px] font-mono font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                    {ext}
-                  </span>
-                ))}
-              </div>
+              <h3 className="text-lg font-bold text-stone-900 dark:text-white">Instant Cryptographic Assessment</h3>
+              <p className="text-xs text-stone-500 dark:text-stone-400 max-w-md mx-auto">
+                Scan source code, ZIP repositories, manifests, and X.509 certs with zero key retention.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 onClick={onStartScan}
-                className="py-3 px-4 rounded-xl text-[12px] font-bold text-indigo-300 glass-card-indigo hover:border-indigo-400/50 flex items-center justify-center gap-2 transition-all"
+                className="py-3 px-4 rounded-xl text-xs font-bold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800/40 hover:bg-orange-100 transition-all flex items-center justify-center gap-2"
               >
                 <Upload className="w-4 h-4" />
                 <span>Upload Files</span>
               </button>
               <button
                 onClick={onStartScan}
-                className="py-3 px-4 rounded-xl text-[12px] font-bold text-violet-300 glass-card-violet hover:border-violet-400/50 flex items-center justify-center gap-2 transition-all"
+                className="py-3 px-4 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 hover:bg-amber-100 transition-all flex items-center justify-center gap-2"
               >
                 <Folder className="w-4 h-4" />
-                <span>Upload Project</span>
+                <span>Upload Project ZIP</span>
               </button>
               <button
-                onClick={() => onSelectDemo('legacy_bank')}
-                className="py-3 px-4 rounded-xl text-[12px] font-bold text-cyan-300 glass-card-cyan hover:border-cyan-400/50 flex items-center justify-center gap-2 transition-all"
+                onClick={onStartScan}
+                className="py-3 px-4 rounded-xl text-xs font-bold text-stone-700 dark:text-stone-300 bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 transition-all flex items-center justify-center gap-2"
               >
                 <Globe className="w-4 h-4" />
-                <span>Scan Website</span>
+                <span>Scan Live TLS</span>
               </button>
             </div>
 
-            {/* Demo projects */}
-            <div>
-              <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-3">Try a Demo Project</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {/* Preloaded Demo Projects for 1-Click Evaluation */}
+            <div className="pt-2">
+              <p className="text-[11px] uppercase tracking-wider font-bold text-stone-500 dark:text-stone-400 mb-3 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-orange-500" />
+                <span>One-Click Demonstration Repositories</span>
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
-                  { id: 'legacy_bank',   label: 'Legacy Bank API',  risk: 'CRITICAL', icon: AlertTriangle },
-                  { id: 'defi_protocol', label: 'DeFi Protocol',    risk: 'HIGH',     icon: TrendingUp },
-                  { id: 'cloud_infra',   label: 'Cloud Infra',      risk: 'MEDIUM',   icon: ShieldCheck },
-                ].map(({ id, label, risk, icon: Icon }) => (
+                  { id: 'legacy_bank', label: 'Legacy Banking Monolith', risk: 'CRITICAL', icon: AlertTriangle, desc: 'RSA-2048, 3DES, MD5' },
+                  { id: 'cloud_microservice', label: 'Cloud Microservice', risk: 'HIGH', icon: TrendingUp, desc: 'ECDSA P-256, AES-CBC' },
+                  { id: 'pqc_hybrid', label: 'PQC Hybrid Vault', risk: 'LOW', icon: ShieldCheck, desc: 'ML-KEM + X25519' },
+                ].map(({ id, label, risk, icon: Icon, desc }) => (
                   <button
                     key={id}
                     onClick={() => onSelectDemo(id)}
-                    className="p-3 rounded-xl glass-card glass-card-hover flex items-center gap-3 text-left"
+                    className="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-orange-400/50 bg-stone-50/60 dark:bg-stone-950/40 hover:bg-orange-50/40 transition-all flex flex-col justify-between text-left group"
                   >
-                    <Icon className={`w-4 h-4 shrink-0 ${risk === 'CRITICAL' ? 'text-rose-400' : risk === 'HIGH' ? 'text-amber-400' : 'text-emerald-400'}`} />
+                    <div className="flex items-center justify-between w-full mb-1">
+                      <Icon className={`w-4 h-4 ${risk === 'CRITICAL' ? 'text-rose-500' : risk === 'HIGH' ? 'text-amber-500' : 'text-emerald-500'}`} />
+                      <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                        risk === 'CRITICAL' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400' :
+                        risk === 'HIGH' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400' :
+                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
+                      }`}>
+                        {risk}
+                      </span>
+                    </div>
                     <div>
-                      <p className="text-[12px] font-bold text-white">{label}</p>
-                      <p className={`text-[10px] font-mono font-bold ${risk === 'CRITICAL' ? 'text-rose-400' : risk === 'HIGH' ? 'text-amber-400' : 'text-emerald-400'}`}>{risk} RISK</p>
+                      <p className="text-xs font-bold text-stone-900 dark:text-white group-hover:text-orange-600 transition-colors leading-tight">{label}</p>
+                      <p className="text-[10px] text-stone-500 dark:text-stone-400 mt-0.5">{desc}</p>
                     </div>
                   </button>
                 ))}
@@ -347,54 +288,59 @@ export const Hero: React.FC<HeroProps> = ({
 
           </div>
 
-          {/* Live scan activity */}
-          <div className="lg:col-span-5 glass-card p-8 rounded-3xl space-y-5">
+          {/* Live Scan Activity & Score Overview */}
+          <div className="lg:col-span-5 bg-white dark:bg-stone-900/90 p-6 sm:p-8 rounded-3xl border border-orange-100 dark:border-stone-800 shadow-sm space-y-5 flex flex-col justify-between">
 
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-300">Live Scan Activity</span>
-              <button onClick={onStartScan} className="text-indigo-400 hover:text-indigo-300 text-[11px] font-bold flex items-center gap-1 transition-colors">
-                View All <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <div>
+              <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3 mb-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-800 dark:text-stone-200">
+                  {isRealData ? 'Active Audit Findings' : 'Recent Cryptographic Audits'}
+                </span>
+                <span className="text-[11px] font-mono text-orange-600 dark:text-orange-400 font-semibold">
+                  {isRealData ? scanResult?.project_name : 'System Preview'}
+                </span>
+              </div>
 
-            <div className="space-y-3">
-              {scanActivity.map(({ name, type, icon: Icon, status, statusLabel, statusCls }) => (
-                <div
-                  key={name}
-                  className="p-4 rounded-2xl bg-white/3 border border-white/6 flex items-center justify-between hover:bg-white/5 transition-colors"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <Icon className="w-5 h-5 text-indigo-400 shrink-0" />
-                    <div>
-                      <p className="text-[13px] font-bold text-white">{name}</p>
-                      <p className="text-[11px] text-slate-400">{type}</p>
+              <div className="space-y-2.5">
+                {scanActivity.map(({ name, type, icon: Icon, status, statusLabel, statusCls }) => (
+                  <div
+                    key={name}
+                    className="p-3 rounded-xl bg-stone-50/80 dark:bg-stone-950/50 border border-stone-200/70 dark:border-stone-800/80 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
+                      <div>
+                        <p className="text-xs font-bold text-stone-900 dark:text-white">{name}</p>
+                        <p className="text-[10px] text-stone-500 dark:text-stone-400">{type}</p>
+                      </div>
                     </div>
+                    <span className={`text-[11px] font-semibold flex items-center gap-1.5 ${statusCls}`}>
+                      {status === 'done' ? (
+                        <><span>{statusLabel}</span><CheckCircle2 className="w-3.5 h-3.5" /></>
+                      ) : (
+                        <><span className="animate-pulse">{statusLabel}</span>
+                          <div className="w-2.5 h-2.5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" /></>
+                      )}
+                    </span>
                   </div>
-                  <span className={`text-[11px] font-semibold flex items-center gap-1.5 ${statusCls}`}>
-                    {status === 'done' ? (
-                      <><span>{statusLabel}</span><CheckCircle2 className="w-3.5 h-3.5" /></>
-                    ) : (
-                      <><span className={status === 'scanning' || status === 'analyzing' ? 'animate-pulse' : ''}>{statusLabel}</span>
-                        <div className={`w-2.5 h-2.5 border-2 ${status === 'scanning' ? 'border-indigo-400' : 'border-violet-400'} border-t-transparent rounded-full animate-spin`} /></>
-                    )}
-                  </span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            {/* Stats strip */}
-            <div className="grid grid-cols-3 gap-3 pt-2 border-t border-white/5">
-              {[
-                { label: 'Files Scanned', value: '14', sub: 'this session' },
-                { label: 'Issues Found',  value: '23', sub: 'across 4 files' },
-                { label: 'PQC Ready',     value: '62%', sub: 'of codebase' },
-              ].map(({ label, value, sub }) => (
-                <div key={label} className="text-center">
-                  <p className="text-lg font-black text-white font-mono">{value}</p>
-                  <p className="text-[10px] font-bold text-slate-300">{label}</p>
-                  <p className="text-[9px] text-slate-500">{sub}</p>
-                </div>
-              ))}
+            {/* Quick Metrics Strip */}
+            <div className="grid grid-cols-3 gap-2 pt-3 border-t border-stone-100 dark:border-stone-800 text-center">
+              <div>
+                <p className="text-lg font-black text-stone-900 dark:text-white font-mono">{classicalScore}</p>
+                <p className="text-[10px] font-bold text-stone-500">Classical Score</p>
+              </div>
+              <div>
+                <p className="text-lg font-black text-orange-600 dark:text-orange-400 font-mono">{quantumScore}</p>
+                <p className="text-[10px] font-bold text-stone-500">Quantum Score</p>
+              </div>
+              <div>
+                <p className="text-lg font-black text-amber-600 dark:text-amber-400 font-mono">{pqcScore}%</p>
+                <p className="text-[10px] font-bold text-stone-500">PQC Ready</p>
+              </div>
             </div>
 
           </div>

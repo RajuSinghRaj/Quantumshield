@@ -1,0 +1,12 @@
+
+version: '2.0'
+project_name: 'Warning Test'
+gate:
+  thresholds:
+    max_critical_findings: 0
+    max_high_findings: 3
+    min_quantum_readiness_score: 0.0
+    require_cbom: true
+policies:
+  rule_flag_sha1:
+    enforcement: ADVISORY_WARNING

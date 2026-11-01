@@ -60,9 +60,11 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   // ==================== SHOR & GROVER STATE ====================
-  const [shorN] = useState<number>(15);
+  const [shorN, setShorN] = useState<number>(15);
   const [shorA, setShorA] = useState<number>(7);
+  const [groverQubits, setGroverQubits] = useState<number>(3);
   const [groverTarget, setGroverTarget] = useState<string>('101');
+  const [groverIterations, setGroverIterations] = useState<number>(2);
   const [shots] = useState<number>(1024);
 
   const [shorResult, setShorResult] = useState<QuantumSimulationResult | null>(null);
@@ -133,12 +135,15 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
   };
 
   // Execute Shor Simulation
-  const handleRunShor = async () => {
+  const handleRunShor = async (targetN?: number, coprime?: number) => {
     setIsAlgoLoading(true);
     setAlgoError(null);
     try {
-      const res = await runShorSimulation(shorN, shorA, shots);
+      const n = targetN || shorN;
+      const a = coprime || shorA;
+      const res = await runShorSimulation(n, a, shots);
       setShorResult(res);
+      playTone(520, 0.12);
     } catch (err: any) {
       setAlgoError(err.response?.data?.detail || 'Shor simulation failed.');
     } finally {
@@ -146,18 +151,43 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
     }
   };
 
+  const handleShorNChange = (n: number) => {
+    setShorN(n);
+    let defaultA = 7;
+    if (n === 15) defaultA = 7;
+    else if (n === 21) defaultA = 2;
+    else if (n === 35) defaultA = 3;
+    setShorA(defaultA);
+    handleRunShor(n, defaultA);
+  };
+
   // Execute Grover Simulation
-  const handleRunGrover = async () => {
+  const handleRunGrover = async (targetOverride?: string, iterOverride?: number) => {
     setIsAlgoLoading(true);
     setAlgoError(null);
     try {
-      const res = await runGroverSimulation(groverTarget, shots);
+      const target = targetOverride || groverTarget;
+      const iters = iterOverride !== undefined ? iterOverride : groverIterations;
+      const res = await runGroverSimulation(target, shots, iters);
       setGroverResult(res);
+      playTone(580, 0.12);
     } catch (err: any) {
       setAlgoError(err.response?.data?.detail || 'Grover simulation failed.');
     } finally {
       setIsAlgoLoading(false);
     }
+  };
+
+  const handleGroverQubitsChange = (q: number) => {
+    setGroverQubits(q);
+    let t = '101';
+    let it = 2;
+    if (q === 2) { t = '10'; it = 1; }
+    else if (q === 3) { t = '101'; it = 2; }
+    else if (q === 4) { t = '1010'; it = 3; }
+    setGroverTarget(t);
+    setGroverIterations(it);
+    handleRunGrover(t, it);
   };
 
   // Recharts Data for BBM92 Measurement Histogram
@@ -259,7 +289,7 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
           </div>
 
           {/* Module Selector Tabs */}
-          <div className="flex flex-wrap items-center gap-2 bg-slate-900/90 p-2 rounded-2xl border border-purple-500/30 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 bg-stone-100 dark:bg-stone-900/90 p-2 rounded-2xl border border-orange-200/60 dark:border-stone-800 shrink-0">
             <button
               onClick={() => {
                 setActiveTab('bbm92');
@@ -267,8 +297,8 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
               }}
               className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-2 ${
                 activeTab === 'bbm92'
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/40'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/40'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
               }`}
             >
               <Radio className="w-4 h-4" />
@@ -282,8 +312,8 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
               }}
               className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-2 ${
                 activeTab === 'shor'
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/40'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/40'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
               }`}
             >
               <Cpu className="w-4 h-4" />
@@ -297,8 +327,8 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
               }}
               className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-2 ${
                 activeTab === 'grover'
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/40'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/40'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
               }`}
             >
               <Zap className="w-4 h-4" />
@@ -1177,92 +1207,189 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
             <div className="glass-card rounded-3xl p-6 sm:p-8 border border-purple-500/30 bg-slate-950/80 space-y-6">
               <div className="flex items-center justify-between border-b border-purple-500/20 pb-4">
                 <div>
-                  <h3 className="text-xl font-extrabold text-white">Shor's Algorithm Simulation</h3>
-                  <p className="text-xs text-slate-400">Public-key threat modeling (Integer Factorization)</p>
+                  <h3 className="text-xl font-extrabold text-white">Shor's Factoring Algorithm Lab</h3>
+                  <p className="text-xs text-slate-400">Quantum Phase Estimation & Polynomial-Time Order Finding</p>
                 </div>
                 <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30">
                   VULNERABLE: RSA / ECC
                 </span>
               </div>
 
-              {/* Controls */}
+              {/* Educational Controls */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
                   <label className="text-xs text-slate-400 font-semibold block mb-1">Target Integer (N)</label>
-                  <input
-                    type="number"
+                  <select
                     value={shorN}
-                    disabled
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm font-mono text-purple-300 font-bold opacity-80"
-                  />
-                  <span className="text-[10px] text-slate-500 mt-1 block">Educational Toy Target</span>
+                    onChange={(e) => handleShorNChange(Number(e.target.value))}
+                    className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3 py-2 text-sm font-mono text-purple-300 font-bold"
+                  >
+                    <option value={15}>N = 15 (3 × 5) — Standard</option>
+                    <option value={21}>N = 21 (3 × 7) — Extended</option>
+                    <option value={35}>N = 35 (5 × 7) — Extended</option>
+                  </select>
+                  <span className="text-[10px] text-slate-500 mt-1 block">Odd Composite Target</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
                   <label className="text-xs text-slate-400 font-semibold block mb-1">Coprime (a)</label>
                   <select
                     value={shorA}
-                    onChange={(e) => setShorA(Number(e.target.value))}
+                    onChange={(e) => {
+                      const newA = Number(e.target.value);
+                      setShorA(newA);
+                      handleRunShor(shorN, newA);
+                    }}
                     className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3 py-2 text-sm font-mono text-purple-300 font-bold"
                   >
-                    <option value={7}>a = 7 (7^r mod 15)</option>
-                    <option value={11}>a = 11 (11^r mod 15)</option>
-                    <option value={2}>a = 2 (2^r mod 15)</option>
+                    {shorN === 15 && (
+                      <>
+                        <option value={7}>a = 7 (7^r mod 15, r=4)</option>
+                        <option value={11}>a = 11 (11^r mod 15, r=2)</option>
+                        <option value={2}>a = 2 (2^r mod 15, r=4)</option>
+                        <option value={8}>a = 8 (8^r mod 15, r=4)</option>
+                        <option value={13}>a = 13 (13^r mod 15, r=4)</option>
+                      </>
+                    )}
+                    {shorN === 21 && (
+                      <>
+                        <option value={2}>a = 2 (2^r mod 21, r=6)</option>
+                        <option value={4}>a = 4 (4^r mod 21, r=3)</option>
+                        <option value={5}>a = 5 (5^r mod 21, r=6)</option>
+                      </>
+                    )}
+                    {shorN === 35 && (
+                      <>
+                        <option value={2}>a = 2 (2^r mod 35, r=12)</option>
+                        <option value={3}>a = 3 (3^r mod 35, r=12)</option>
+                        <option value={4}>a = 4 (4^r mod 35, r=6)</option>
+                      </>
+                    )}
                   </select>
-                  <span className="text-[10px] text-slate-500 mt-1 block">Selected Coprime</span>
+                  <span className="text-[10px] text-slate-500 mt-1 block">Coprime gcd(a, N) = 1</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-end">
                   <button
-                    onClick={handleRunShor}
+                    onClick={() => handleRunShor()}
                     disabled={isAlgoLoading}
-                    className="w-full py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-500/30 transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                    className="w-full py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-500/30 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
                   >
                     {isAlgoLoading ? <Cpu className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
-                    <span>Execute Shor Circuit</span>
+                    <span>Run Shor Simulation</span>
                   </button>
                 </div>
               </div>
 
               {/* Shor Result Summary */}
               {shorResult && (
-                <div className="p-5 rounded-2xl bg-purple-950/30 border border-purple-500/30 space-y-3">
+                <div className="p-5 rounded-2xl bg-purple-950/30 border border-purple-500/30 space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-purple-300">Target State Output</span>
+                    <span className="text-xs font-mono font-bold text-purple-300">Target State Factorization Output</span>
                     <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
-                      Factorization Successful
+                      Order Finding Successful
                     </span>
                   </div>
 
-                  <div className="text-2xl font-black text-white font-mono text-center py-2 bg-slate-950/80 rounded-xl border border-slate-800">
-                    15 = <span className="text-purple-400">3</span> &times; <span className="text-indigo-400">5</span>
+                  <div className="text-2xl font-black text-white font-mono text-center py-3 bg-slate-950/80 rounded-xl border border-slate-800 tracking-wider">
+                    {shorN} = <span className="text-purple-400 font-black">{shorResult.factors?.[0] ?? 3}</span> &times; <span className="text-indigo-400 font-black">{shorResult.factors?.[1] ?? (shorN / (shorResult.factors?.[0] ?? 3))}</span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-                    <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
                       <span className="text-slate-400 text-[10px] block">Period (r)</span>
-                      <strong className="text-purple-300 font-extrabold">{shorResult.period_found}</strong>
+                      <strong className="text-purple-300 font-extrabold font-mono text-sm">{shorResult.period_found}</strong>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
                       <span className="text-slate-400 text-[10px] block">Total Qubits</span>
-                      <strong className="text-indigo-300 font-extrabold">{shorResult.qubits} Qubits</strong>
+                      <strong className="text-indigo-300 font-extrabold font-mono text-sm">{shorResult.qubits} Qubits</strong>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
                       <span className="text-slate-400 text-[10px] block">Circuit Depth</span>
-                      <strong className="text-amber-300 font-extrabold">{shorResult.circuit_depth}</strong>
+                      <strong className="text-amber-300 font-extrabold font-mono text-sm">{shorResult.circuit_depth}</strong>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
-                      <span className="text-slate-400 text-[10px] block">Aer Shots</span>
-                      <strong className="text-emerald-300 font-extrabold">{shorResult.shots}</strong>
+                    <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                      <span className="text-slate-400 text-[10px] block">Aer Execution</span>
+                      <strong className="text-emerald-300 font-extrabold font-mono text-sm">{shorResult.execution_time_ms} ms</strong>
                     </div>
                   </div>
+
+                  {/* Classical Post-Processing Explanation Callout */}
+                  {(shorResult as any).classical_post_processing && (
+                    <div className="p-3.5 rounded-xl bg-slate-950/90 border border-purple-500/20 text-xs font-mono text-slate-300 space-y-1">
+                      <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider block">Classical Post-Processing (GCD & Period r):</span>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        {(shorResult as any).classical_post_processing}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Modular Exponentiation Sequence Table */}
+                  {(shorResult as any).modular_sequence && (shorResult as any).modular_sequence.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold block">
+                        Modular Exponentiation Sequence: a^x mod N (Periodicity Demonstration)
+                      </span>
+                      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 font-mono text-xs">
+                        {(shorResult as any).modular_sequence.map((m: any, idx: number) => {
+                          const isStartOfPeriod = m.power % (shorResult.period_found || 4) === 0;
+                          return (
+                            <div
+                              key={idx}
+                              className={`p-2 rounded-xl text-center min-w-[56px] border ${
+                                isStartOfPeriod
+                                  ? 'bg-purple-950/60 border-purple-500/50 text-purple-200 font-bold'
+                                  : 'bg-slate-900/60 border-slate-800 text-slate-400'
+                              }`}
+                            >
+                              <div className="text-[9px] text-slate-500">{shorA}^{m.power}</div>
+                              <div className="text-sm font-bold text-white mt-0.5">{m.value}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Continued Fractions Table */}
+                  {(shorResult as any).phase_candidates && (shorResult as any).phase_candidates.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold block">
+                        Continued Fractions & Phase Estimation Convergents
+                      </span>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs font-mono border-collapse">
+                          <thead>
+                            <tr className="border-b border-purple-500/20 text-[10px] text-slate-400">
+                              <th className="py-1 px-2 text-left">Bitstring</th>
+                              <th className="py-1 px-2 text-left">Decimal</th>
+                              <th className="py-1 px-2 text-left">Phase (s/2ⁿ)</th>
+                              <th className="py-1 px-2 text-left">Convergent (s/r)</th>
+                              <th className="py-1 px-2 text-left">Candidate r</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(shorResult as any).phase_candidates.map((pc: any, i: number) => (
+                              <tr key={i} className="border-b border-slate-800/60">
+                                <td className="py-1.5 px-2 text-purple-300 font-bold">{pc.measured_bitstring}</td>
+                                <td className="py-1.5 px-2 text-slate-300">{pc.measured_decimal}</td>
+                                <td className="py-1.5 px-2 text-slate-300">{pc.phase.toFixed(4)}</td>
+                                <td className="py-1.5 px-2 text-indigo-300 font-bold">{pc.fraction}</td>
+                                <td className="py-1.5 px-2 text-emerald-400 font-bold">{pc.candidate_r}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
             {/* Shor Histogram */}
             <div className="glass-card rounded-3xl p-6 border border-purple-500/30 bg-slate-950/80 space-y-3">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider">Counting Qubits Probability Distribution</h4>
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider">Counting Qubits Probability Distribution (QPE Peaks)</h4>
               {algoChartData.length > 0 ? (
                 <div className="h-56 w-full pt-2">
                   <ResponsiveContainer width="100%" height="100%">
@@ -1304,17 +1431,43 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
             <div className="glass-card rounded-3xl p-6 sm:p-8 border border-purple-500/30 bg-slate-950/80 space-y-4">
               <div className="flex items-center space-x-2 border-b border-purple-500/20 pb-3">
                 <HelpCircle className="w-5 h-5 text-purple-400" />
-                <h3 className="text-base font-extrabold text-white">Why Shor's Algorithm Threatens Public Key Cryptography</h3>
+                <h3 className="text-base font-extrabold text-white">Why Shor's Algorithm Threatens Public-Key Cryptography</h3>
               </div>
               <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
                 <p>
-                  RSA and Elliptic Curve Cryptography rely on the difficulty of integer factorization and discrete logarithms.
-                  Shor's algorithm uses <strong>Quantum Phase Estimation (QPE)</strong> and the <strong>Inverse Quantum Fourier Transform (QFT†)</strong> to solve order finding in polynomial time <strong>O(n³)</strong>.
+                  Classical RSA and ECC security rely on computational hardness: factoring large semiprimes (IFP) and solving discrete logarithms (ECDLP).
+                  Shor's algorithm uses <strong>Quantum Phase Estimation (QPE)</strong> and the <strong>Inverse Quantum Fourier Transform (QFT†)</strong> to solve order finding in polynomial time <strong>O((log N)³)</strong>.
                 </p>
-                <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-                  <span className="font-bold text-purple-300 block">NIST Post-Quantum Migration Requirement:</span>
+
+                <div className="p-3.5 rounded-xl bg-rose-950/20 border border-rose-500/30 space-y-1 text-rose-200">
+                  <strong className="text-rose-300 block font-bold">Exponential Quantum Speedup:</strong>
+                  <span>
+                    Classical factoring takes sub-exponential time O(exp((64/9)^(1/3) (ln N)^(1/3) (ln ln N)^(2/3))) via the General Number Field Sieve (GNFS).
+                    Shor replaces this with polynomial time O((log N)³), rendering key size increases ineffective against quantum adversaries.
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                  <span className="font-bold text-purple-300 block">Why Conventional ECC (ECDSA, Ed25519) is Also Broken:</span>
                   <p className="text-slate-400">
-                    Replace RSA-2048/ECC with <strong>ML-KEM (FIPS 203)</strong> for key exchange and <strong>ML-DSA (FIPS 204)</strong> or <strong>SLH-DSA (FIPS 205)</strong> for digital signatures.
+                    Shor's algorithm equally solves the discrete logarithm problem over abelian groups (such as elliptic curve point multiplication Q = kP).
+                    ECC keys are much smaller than RSA keys (e.g. 256 bits vs 2048 bits), requiring even fewer logical qubits to break.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-amber-950/20 border border-amber-500/30 space-y-1.5 text-amber-200">
+                  <strong className="text-amber-300 block font-bold">Fault-Tolerant Hardware Feasibility:</strong>
+                  <p className="text-[11px] leading-relaxed">
+                    Factoring RSA-2048 requires ~4,096 logical qubits and billions of T-gate operations.
+                    Under surface code quantum error correction (QEC), this translates to <strong>4–20 million physical qubits</strong>.
+                    Current NISQ processors have ~100–1,000 noisy physical qubits, meaning RSA-2048 remains secure today but must be migrated before fault-tolerant quantum hardware emerges.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-1 text-emerald-200">
+                  <strong className="text-emerald-300 block font-bold">Standardized PQC Remedies:</strong>
+                  <p className="text-[11px] leading-relaxed">
+                    Migrate key establishment to <strong>ML-KEM-768 (NIST FIPS 203)</strong> and digital signatures to <strong>ML-DSA-65 (NIST FIPS 204)</strong> or <strong>SLH-DSA (NIST FIPS 205)</strong>.
                   </p>
                 </div>
               </div>
@@ -1332,8 +1485,8 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
             <div className="glass-card rounded-3xl p-6 sm:p-8 border border-purple-500/30 bg-slate-950/80 space-y-6">
               <div className="flex items-center justify-between border-b border-purple-500/20 pb-4">
                 <div>
-                  <h3 className="text-xl font-extrabold text-white">Grover's Algorithm Simulation</h3>
-                  <p className="text-xs text-slate-400">Symmetric key search acceleration (Quadratic speedup)</p>
+                  <h3 className="text-xl font-extrabold text-white">Grover's Quadratic Search Lab</h3>
+                  <p className="text-xs text-slate-400">Amplitude Amplification & Symmetric Key Margin Halving</p>
                 </div>
                 <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   DEGRADED: AES-128 | SAFE: AES-256
@@ -1341,79 +1494,185 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
               </div>
 
               {/* Controls */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-                  <label className="text-xs text-slate-400 font-semibold block mb-1">Target Secret Bitstring</label>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
+                  <label className="text-xs text-slate-400 font-semibold block mb-1">Search Space Size</label>
+                  <select
+                    value={groverQubits}
+                    onChange={(e) => handleGroverQubitsChange(Number(e.target.value))}
+                    className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-2.5 py-1.5 text-xs font-mono text-purple-300 font-bold"
+                  >
+                    <option value={2}>2 Qubits (4 States)</option>
+                    <option value={3}>3 Qubits (8 States)</option>
+                    <option value={4}>4 Qubits (16 States)</option>
+                  </select>
+                  <span className="text-[10px] text-slate-500 mt-1 block">N = 2^{groverQubits} States</span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
+                  <label className="text-xs text-slate-400 font-semibold block mb-1">Target Marked State</label>
                   <select
                     value={groverTarget}
-                    onChange={(e) => setGroverTarget(e.target.value)}
-                    className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3 py-2 text-sm font-mono text-purple-300 font-bold"
+                    onChange={(e) => {
+                      const t = e.target.value;
+                      setGroverTarget(t);
+                      handleRunGrover(t, groverIterations);
+                    }}
+                    className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-2.5 py-1.5 text-xs font-mono text-purple-300 font-bold"
                   >
-                    <option value="101">Target |101⟩ (State 5)</option>
-                    <option value="011">Target |011⟩ (State 3)</option>
-                    <option value="110">Target |110⟩ (State 6)</option>
-                    <option value="001">Target |001⟩ (State 1)</option>
+                    {groverQubits === 2 && (
+                      <>
+                        <option value="10">Target |10⟩ (State 2)</option>
+                        <option value="01">Target |01⟩ (State 1)</option>
+                        <option value="11">Target |11⟩ (State 3)</option>
+                        <option value="00">Target |00⟩ (State 0)</option>
+                      </>
+                    )}
+                    {groverQubits === 3 && (
+                      <>
+                        <option value="101">Target |101⟩ (State 5)</option>
+                        <option value="011">Target |011⟩ (State 3)</option>
+                        <option value="110">Target |110⟩ (State 6)</option>
+                        <option value="001">Target |001⟩ (State 1)</option>
+                      </>
+                    )}
+                    {groverQubits === 4 && (
+                      <>
+                        <option value="1010">Target |1010⟩ (State 10)</option>
+                        <option value="1101">Target |1101⟩ (State 13)</option>
+                        <option value="0101">Target |0101⟩ (State 5)</option>
+                        <option value="1111">Target |1111⟩ (State 15)</option>
+                      </>
+                    )}
                   </select>
-                  <span className="text-[10px] text-slate-500 mt-1 block">Secret Oracle Target</span>
+                  <span className="text-[10px] text-slate-500 mt-1 block">Inverted Phase State</span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-                  <label className="text-xs text-slate-400 font-semibold block mb-1">Search Space</label>
+                <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-slate-400 font-semibold">Iterations</span>
+                    <span className="font-mono text-purple-300 font-bold">{groverIterations}</span>
+                  </div>
                   <input
-                    type="text"
-                    value="8 States (3 Qubits)"
-                    disabled
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-indigo-300 font-bold opacity-80"
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value={groverIterations}
+                    onChange={(e) => {
+                      const it = Number(e.target.value);
+                      setGroverIterations(it);
+                      handleRunGrover(groverTarget, it);
+                    }}
+                    className="w-full accent-purple-500 cursor-pointer"
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">Toy Search Space</span>
+                  <div className="flex justify-between text-[9px] text-slate-500 font-mono">
+                    <span>1</span>
+                    <span className="text-amber-400">Opt: {Math.max(1, Math.floor((Math.PI / 4) * Math.sqrt(2 ** groverQubits)))}</span>
+                    <span>5</span>
+                  </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-end">
+                <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-end">
                   <button
-                    onClick={handleRunGrover}
+                    onClick={() => handleRunGrover()}
                     disabled={isAlgoLoading}
-                    className="w-full py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-500/30 transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                    className="w-full py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-500/30 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
                   >
                     {isAlgoLoading ? <Cpu className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
-                    <span>Execute Grover Circuit</span>
+                    <span>Run Grover</span>
                   </button>
                 </div>
               </div>
 
               {/* Grover Result Summary */}
               {groverResult && (
-                <div className="p-5 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 space-y-3">
+                <div className="p-5 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-indigo-300">Amplitude Amplification Peak</span>
+                    <span className="text-xs font-mono font-bold text-indigo-300">Amplitude Amplification Verdict</span>
                     <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
-                      Probability &gt; 94%
+                      {Math.round(((groverResult as any).target_probability || (groverResult.probabilities[groverResult.target_state || '101'] || 0)) * 100)}% Marked Probability
                     </span>
                   </div>
 
-                  <div className="text-2xl font-black text-white font-mono text-center py-2 bg-slate-950/80 rounded-xl border border-slate-800">
-                    Target State: <span className="text-purple-400">|{groverResult.target_state}⟩</span>
+                  <div className="text-2xl font-black text-white font-mono text-center py-2.5 bg-slate-950/80 rounded-xl border border-slate-800 tracking-wider">
+                    Target State: <span className="text-purple-400 font-black">|{groverResult.target_state}⟩</span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-                    <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
-                      <span className="text-slate-400 text-[10px] block">Target Probability</span>
-                      <strong className="text-purple-300 font-extrabold">
-                        {Math.round((groverResult.probabilities[groverResult.target_state || '101'] || 0) * 100)}%
+                    <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                      <span className="text-slate-400 text-[10px] block">Target Prob</span>
+                      <strong className="text-purple-300 font-extrabold font-mono text-sm">
+                        {Math.round(((groverResult as any).target_probability || (groverResult.probabilities[groverResult.target_state || '101'] || 0)) * 100)}%
                       </strong>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
-                      <span className="text-slate-400 text-[10px] block">Total Qubits</span>
-                      <strong className="text-indigo-300 font-extrabold">{groverResult.qubits} Qubits</strong>
+                    <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                      <span className="text-slate-400 text-[10px] block">Search Qubits</span>
+                      <strong className="text-indigo-300 font-extrabold font-mono text-sm">{groverResult.qubits} Qubits</strong>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
                       <span className="text-slate-400 text-[10px] block">Circuit Depth</span>
-                      <strong className="text-amber-300 font-extrabold">{groverResult.circuit_depth}</strong>
+                      <strong className="text-amber-300 font-extrabold font-mono text-sm">{groverResult.circuit_depth}</strong>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
-                      <span className="text-slate-400 text-[10px] block">Iterations</span>
-                      <strong className="text-emerald-300 font-extrabold">2 Grover Steps</strong>
+                    <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                      <span className="text-slate-400 text-[10px] block">Applied Steps</span>
+                      <strong className="text-emerald-300 font-extrabold font-mono text-sm">{(groverResult as any).iterations || groverIterations} Iterations</strong>
                     </div>
                   </div>
+
+                  {/* Over-rotation or informational alert */}
+                  {(groverResult as any).simulation_warning && (
+                    <div className="p-3 rounded-xl bg-slate-950/90 border border-amber-500/30 text-xs font-mono text-amber-300">
+                      {(groverResult as any).simulation_warning}
+                    </div>
+                  )}
+
+                  {/* Amplitude Amplification Progression Table */}
+                  {(groverResult as any).iteration_probabilities && (groverResult as any).iteration_probabilities.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold block">
+                        Amplitude Amplification & Over-Rotation Sequence: P(k) = sin²((2k+1)θ)
+                      </span>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs font-mono border-collapse">
+                          <thead>
+                            <tr className="border-b border-indigo-500/20 text-[10px] text-slate-400">
+                              <th className="py-1 px-2 text-left">Iteration k</th>
+                              <th className="py-1 px-2 text-left">State</th>
+                              <th className="py-1 px-2 text-left">Marked State Prob</th>
+                              <th className="py-1 px-2 text-left">Remaining States Prob</th>
+                              <th className="py-1 px-2 text-left">Evaluation</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(groverResult as any).iteration_probabilities.map((ip: any) => (
+                              <tr
+                                key={ip.iteration}
+                                className={`border-b border-slate-800/60 ${
+                                  ip.is_applied ? 'bg-indigo-950/40 font-bold' : ''
+                                }`}
+                              >
+                                <td className="py-1.5 px-2 text-purple-300">k = {ip.iteration}</td>
+                                <td className="py-1.5 px-2 text-slate-300">
+                                  {ip.iteration === 0 ? 'Uniform Superposition' : `After ${ip.iteration} Step${ip.iteration > 1 ? 's' : ''}`}
+                                </td>
+                                <td className={`py-1.5 px-2 font-bold ${ip.is_optimal ? 'text-emerald-400' : 'text-purple-300'}`}>
+                                  {(ip.marked_probability * 100).toFixed(1)}%
+                                </td>
+                                <td className="py-1.5 px-2 text-slate-400">
+                                  {(ip.non_marked_probability * 100).toFixed(2)}% each
+                                </td>
+                                <td className="py-1.5 px-2">
+                                  {ip.is_optimal && <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Optimal Peak</span>}
+                                  {ip.is_applied && !ip.is_optimal && <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Active Run</span>}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1466,16 +1725,35 @@ export const QuantumLabPage: React.FC<QuantumLabPageProps> = () => {
               </div>
               <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
                 <p>
-                  Grover's algorithm provides a <strong>quadratic speedup O(&radic;N)</strong> for unstructured search over symmetric key spaces.
-                  This effectively halves the key length security margin:
+                  Grover's algorithm provides a <strong>quadratic speedup O(√N)</strong> for searching unstructured data spaces.
+                  Unlike Shor's algorithm (which provides an exponential speedup), Grover does NOT break symmetric ciphers. It simply halves the effective key length:
                 </p>
+
                 <div className="space-y-2 font-mono text-[11px]">
-                  <div className="p-2.5 rounded-xl bg-rose-950/30 border border-rose-500/30 text-rose-200">
-                    <strong>AES-128:</strong> 128 bits &rarr; 64 bits quantum security (Degraded / Insecure)
+                  <div className="p-3 rounded-xl bg-rose-950/30 border border-rose-500/30 text-rose-200">
+                    <strong className="block text-rose-300">AES-128 (Degraded / Insufficient):</strong>
+                    <span>128-bit key space (2¹²⁸) &rarr; Grover search takes ~2⁶⁴ quantum operations. 64 bits of security is within potential reach of massive parallel quantum clusters.</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-emerald-200">
-                    <strong>AES-256:</strong> 256 bits &rarr; 128 bits quantum security (Safe & Resistant)
+                  <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-emerald-200">
+                    <strong className="block text-emerald-300">AES-256 (Safe & Quantum Resistant):</strong>
+                    <span>256-bit key space (2²⁵⁶) &rarr; Grover search takes ~2¹²⁸ quantum operations. 2¹²⁸ operations requires cosmological energy scale and is completely unbreakable.</span>
                   </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                  <span className="font-bold text-purple-300 block">Quadratic vs Exponential Speedup:</span>
+                  <p className="text-slate-400 text-[11px]">
+                    To counter an exponential attack (Shor on RSA), doubling the key size is futile.
+                    To counter a quadratic attack (Grover on AES), doubling the key size (AES-128 &rarr; AES-256) completely neutralizes the threat and restores 128 bits of security.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-amber-950/20 border border-amber-500/30 space-y-1 text-amber-200">
+                  <strong className="text-amber-300 block font-bold">Quantum Computing Viva Note:</strong>
+                  <p className="text-[11px] leading-relaxed">
+                    Be prepared to explain: Grover search consists of (1) Oracle phase inversion |x*⟩ &rarr; -|x*⟩ and (2) Diffuser inversion about average 2|s⟩⟨s| - I.
+                    Too many iterations leads to <em>over-rotation</em> where target probability decreases!
+                  </p>
                 </div>
               </div>
             </div>

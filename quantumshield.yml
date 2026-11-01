@@ -1,0 +1,141 @@
+# ==============================================================================
+# QuantumShield 2.0 — Project Cryptographic Security Policy Configuration
+# ==============================================================================
+# This configuration defines organizational security policies, CI/CD gate
+# thresholds, exceptions, and path exclusions for automated pipeline gating.
+# ==============================================================================
+
+version: "2.0"
+project_name: "QuantumShield Platform"
+
+# ------------------------------------------------------------------------------
+# 1. CI/CD Cryptographic Security Gate & Thresholds
+# ------------------------------------------------------------------------------
+gate:
+  fail_on_blocking: true         # Fail CI/CD build if any BLOCKING_FAILURE rule is violated
+  fail_on_manual_review: false   # Halt pipeline for security team approval (exit code 2)
+  thresholds:
+    max_critical_findings: 0     # Zero tolerance for critical classical vulnerabilities
+    max_high_findings: 3         # Allow up to 3 high findings before failing the build
+    max_classical_risk_score: 75.0 # Maximum allowable classical risk score (0-100)
+    max_quantum_risk_score: 85.0   # Maximum allowable quantum risk score (0-100)
+    min_quantum_readiness_score: 15.0 # Minimum required post-quantum readiness score (0-100)
+    require_cbom: true           # Mandate CycloneDX 1.6 CBOM artifact generation
+
+# ------------------------------------------------------------------------------
+# 2. Cryptographic Security Policies
+# ------------------------------------------------------------------------------
+# Enforcement Modes:
+#   - BLOCKING_FAILURE: Pipeline fails immediately on violation (exit code 1).
+#   - ADVISORY_WARNING: Generates visible CI warning without blocking build.
+#   - MANUAL_REVIEW_REQUIRED: Halts pipeline for security sign-off (exit code 2).
+# ------------------------------------------------------------------------------
+policies:
+  # --- Classical Cryptography Rules ---
+  rule_reject_md5:
+    enabled: true
+    enforcement: BLOCKING_FAILURE
+    severity: CRITICAL
+
+  rule_reject_des_3des:
+    enabled: true
+    enforcement: BLOCKING_FAILURE
+    severity: CRITICAL
+
+  rule_reject_weak_rsa:
+    enabled: true
+    enforcement: BLOCKING_FAILURE
+    severity: HIGH
+    config:
+      min_rsa_key_size: 2048
+
+  rule_flag_sha1:
+    enabled: true
+    enforcement: ADVISORY_WARNING
+    severity: MEDIUM
+
+  rule_flag_insecure_aes_ecb:
+    enabled: true
+    enforcement: BLOCKING_FAILURE
+    severity: HIGH
+
+  # --- Quantum Security Rules ---
+  rule_flag_shor_asymmetric:
+    enabled: true
+    enforcement: ADVISORY_WARNING
+    severity: HIGH
+
+  rule_flag_classical_kex_hndl:
+    enabled: true
+    enforcement: ADVISORY_WARNING
+    severity: HIGH
+
+  rule_require_pqc_or_hybrid:
+    enabled: false # Enable in production high-security environments
+    enforcement: MANUAL_REVIEW_REQUIRED
+    severity: HIGH
+
+  rule_flag_experimental_pqc:
+    enabled: true
+    enforcement: ADVISORY_WARNING
+    severity: MEDIUM
+
+  # --- Supply-Chain & Dependency Rules ---
+  rule_flag_vulnerable_crypto_dependencies:
+    enabled: true
+    enforcement: BLOCKING_FAILURE
+    severity: HIGH
+
+  rule_flag_unverified_pqc_dependencies:
+    enabled: true
+    enforcement: ADVISORY_WARNING
+    severity: MEDIUM
+
+  rule_flag_declared_only_crypto:
+    enabled: true
+    enforcement: ADVISORY_WARNING
+    severity: LOW
+
+  rule_flag_outdated_dependencies:
+    enabled: true
+    enforcement: ADVISORY_WARNING
+    severity: MEDIUM
+
+  # --- CBOM Rules ---
+  rule_require_cbom_artifact:
+    enabled: true
+    enforcement: BLOCKING_FAILURE
+    severity: HIGH
+
+  rule_require_asset_evidence:
+    enabled: true
+    enforcement: ADVISORY_WARNING
+    severity: MEDIUM
+
+  rule_validate_cbom_metadata:
+    enabled: true
+    enforcement: ADVISORY_WARNING
+    severity: MEDIUM
+
+# ------------------------------------------------------------------------------
+# 3. Documented Security Policy Exceptions
+# ------------------------------------------------------------------------------
+# Exceptions MUST provide documented justification explaining business or
+# technical rationale, and the security reviewer who authorized the exception.
+# ------------------------------------------------------------------------------
+exceptions:
+  - rule_id: "rule_flag_sha1"
+    file_path: "legacy/git_commit_validator.py"
+    reason: "Git commit hash calculation uses SHA-1 for repository compatibility; not used for digital signatures or TLS."
+    approved_by: "Lead Security Architect"
+
+# ------------------------------------------------------------------------------
+# 4. Path Exclusions
+# ------------------------------------------------------------------------------
+exclude_paths:
+  - "tests/**"
+  - "test_*.py"
+  - "node_modules/**"
+  - ".venv/**"
+  - "vendor/**"
+

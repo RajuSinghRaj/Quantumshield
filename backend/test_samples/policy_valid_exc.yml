@@ -1,0 +1,8 @@
+
+version: '2.0'
+exceptions:
+  - rule_id: rule_reject_md5
+    file_path: vulnerable_app.py
+    reason: 'Legacy checksum verification approved by CISO'
+    approved_by: 'CISO'
+    expires_at: '2030-01-01'
