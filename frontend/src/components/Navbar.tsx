@@ -12,13 +12,13 @@ interface NavbarProps {
 }
 
 const navItems = [
-  { id: 'home',         label: 'Stays' },
+  { id: 'home',         label: 'Home' },
   { id: 'scanner',      label: 'Scanner' },
   { id: 'migration',    label: 'Migration' },
   { id: 'devsecops',    label: 'DevSecOps' },
   { id: 'quantum-lab',  label: 'Quantum Lab' },
   { id: 'dashboard',    label: 'Reports' },
-  { id: 'education',    label: 'Journal' },
+  { id: 'education',    label: 'Learn' },
   { id: 'history',      label: 'History' },
 ];
 
