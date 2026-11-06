@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 
 export const CursorGlowBackground: React.FC = () => {
-  const ballGroupRef = useRef<HTMLDivElement>(null);
+  const cursorSmokeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Initial position centered on the middle-right matching Tidewell screenshot
-    let currentX = window.innerWidth * 0.58;
+    // Current interpolated positions
+    let currentX = window.innerWidth * 0.5;
     let currentY = window.innerHeight * 0.45;
     let targetX = currentX;
     let targetY = currentY;
@@ -17,12 +17,12 @@ export const CursorGlowBackground: React.FC = () => {
       const dx = targetX - currentX;
       const dy = targetY - currentY;
 
-      // Smooth lerp damping for silky momentum
-      currentX += dx * 0.08;
-      currentY += dy * 0.08;
+      // Smooth lerp damping for organic smoke momentum
+      currentX += dx * 0.085;
+      currentY += dy * 0.085;
 
-      if (ballGroupRef.current) {
-        ballGroupRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+      if (cursorSmokeRef.current) {
+        cursorSmokeRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
       }
 
       // If still moving, keep animating; otherwise sleep to save GPU cycles
@@ -44,8 +44,8 @@ export const CursorGlowBackground: React.FC = () => {
     };
 
     // Initial render placement
-    if (ballGroupRef.current) {
-      ballGroupRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+    if (cursorSmokeRef.current) {
+      cursorSmokeRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
     }
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
@@ -61,120 +61,106 @@ export const CursorGlowBackground: React.FC = () => {
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
       aria-hidden="true"
     >
-      {/* ── 1. COLD WINTER SLATE / STEEL-NAVY BACKDROP ── */}
+      {/* ── 1. COLD WINTER SLATE / STEEL-NAVY DEEP BACKDROP ── */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(145deg, #0a1222 0%, #101c34 35%, #0e1930 70%, #080e1b 100%)',
+          background: 'linear-gradient(140deg, #091120 0%, #0d1830 35%, #0b152b 70%, #060c18 100%)',
         }}
       />
 
-      {/* Cold Icy Blue Ambient Winter Highlights */}
-      <div className="absolute -top-32 -left-32 w-[750px] h-[750px] rounded-full bg-sky-900/30 blur-[150px]" />
-      <div className="absolute top-1/4 right-0 w-[600px] h-[600px] rounded-full bg-indigo-950/35 blur-[140px]" />
-      <div className="absolute -bottom-32 left-1/4 w-[700px] h-[600px] rounded-full bg-slate-800/30 blur-[150px]" />
-
-      {/* ── 2. VISIBLE WHITE-GRAYISH DARK SMOKE CLOUDS IN BACKGROUND ── */}
-      {/* Main Visible White-Gray Smoke Cloud (Upper Left & Center Behind Headline) */}
+      {/* ── 2. HIGH-CLARITY WHITE-GRAY FOG CLOUDS (CLEARLY VISIBLE, DISTINCT BANKS) ── */}
+      {/* Fog Bank 1: Prominent Luminous White-Silver Mist (Upper Left Behind Headline) */}
       <div
         className="absolute smoke-cloud-1 pointer-events-none"
         style={{
-          width: '1050px',
-          height: '750px',
-          left: '6%',
-          top: '4%',
-          background: 'radial-gradient(ellipse 520px 380px at 45% 45%, rgba(235, 242, 255, 0.42) 0%, rgba(185, 202, 228, 0.28) 40%, rgba(130, 148, 178, 0.16) 65%, transparent 85%)',
+          width: '950px',
+          height: '620px',
+          left: '4%',
+          top: '6%',
+          background: 'radial-gradient(ellipse 480px 310px at 45% 45%, rgba(255, 255, 255, 0.65) 0%, rgba(230, 240, 255, 0.45) 28%, rgba(185, 205, 235, 0.25) 55%, transparent 80%)',
         }}
       />
 
-      {/* Secondary Dark Charcoal / Slate Smoke Swirl (Mid-ground Volume) */}
+      {/* Fog Bank 1 Core Highlight for Maximum Crisp Clarity */}
+      <div
+        className="absolute smoke-cloud-1 pointer-events-none"
+        style={{
+          width: '520px',
+          height: '340px',
+          left: '12%',
+          top: '12%',
+          background: 'radial-gradient(ellipse 260px 170px at 45% 45%, rgba(255, 255, 255, 0.55) 0%, rgba(220, 235, 255, 0.28) 45%, transparent 75%)',
+        }}
+      />
+
+      {/* Fog Bank 2: Mid-ground Billowing Silver Fog Plume (Center-Top drifting) */}
       <div
         className="absolute smoke-cloud-2 pointer-events-none"
         style={{
-          width: '900px',
-          height: '620px',
-          left: '0%',
-          top: '30%',
-          background: 'radial-gradient(ellipse 460px 310px at 50% 50%, rgba(160, 178, 208, 0.32) 0%, rgba(110, 128, 158, 0.20) 50%, rgba(60, 78, 108, 0.10) 70%, transparent 85%)',
+          width: '820px',
+          height: '520px',
+          left: '32%',
+          top: '10%',
+          background: 'radial-gradient(ellipse 410px 260px at 50% 50%, rgba(240, 248, 255, 0.45) 0%, rgba(195, 215, 245, 0.28) 38%, rgba(140, 165, 205, 0.12) 65%, transparent 82%)',
         }}
       />
 
-      {/* Frosty White Mist Drifting Across Right Side Behind Cards */}
+      {/* Fog Bank 3: Swirling Cold Mist Band (Lower Left Under Subtext) */}
       <div
-        className="absolute smoke-cloud-1 pointer-events-none"
+        className="absolute smoke-cloud-2 pointer-events-none"
         style={{
-          width: '850px',
-          height: '680px',
-          right: '2%',
-          top: '15%',
-          background: 'radial-gradient(ellipse 420px 340px at 50% 50%, rgba(220, 235, 255, 0.26) 0%, rgba(165, 185, 218, 0.16) 50%, transparent 80%)',
+          width: '880px',
+          height: '480px',
+          left: '2%',
+          top: '42%',
+          background: 'radial-gradient(ellipse 440px 240px at 40% 50%, rgba(215, 232, 255, 0.38) 0%, rgba(165, 190, 225, 0.20) 45%, transparent 75%)',
         }}
       />
 
-      {/* Subtle Winter Ground Fog */}
+      {/* ── 3. SMALL DELICATE RED SMOKE FOLLOWING CURSOR (NO GIANT BALL) ── */}
       <div
-        className="absolute bottom-0 inset-x-0 h-96 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse 1200px 280px at 50% 100%, rgba(180, 200, 230, 0.18) 0%, rgba(120, 140, 175, 0.08) 55%, transparent 80%)',
-        }}
-      />
-
-      {/* ── 3. GLOWING RED BALL EMITTING SMOKE & VAPOR (FOLLOWS CURSOR) ── */}
-      <div
-        ref={ballGroupRef}
+        ref={cursorSmokeRef}
         className="absolute top-0 left-0 will-change-transform pointer-events-none"
       >
-        {/* Layer 3A: Wide Emitted Crimson Smoke Vapor (Outer Dispersion Cloud) */}
+        {/* Soft Organic Outer Red Smoke Wisp (Small ~200px) */}
         <div
           className="absolute rounded-full red-vapor-cloud -translate-x-1/2 -translate-y-1/2"
           style={{
-            width: '820px',
-            height: '800px',
-            background: 'radial-gradient(circle at 50% 50%, rgba(240, 50, 45, 0.26) 0%, rgba(200, 25, 50, 0.14) 45%, rgba(140, 10, 40, 0.05) 68%, transparent 82%)',
+            width: '210px',
+            height: '190px',
+            background: 'radial-gradient(ellipse 105px 95px at 50% 50%, rgba(240, 68, 56, 0.40) 0%, rgba(225, 29, 72, 0.20) 45%, rgba(160, 15, 45, 0.05) 75%, transparent 100%)',
           }}
         />
 
-        {/* Layer 3B: Billowing Red Smoke Puff (Emitted Around the Ball) */}
+        {/* Small Inner Wispy Smoke Curl (Delicate ~120px) */}
         <div
           className="absolute rounded-full red-smoke-puff -translate-x-1/2 -translate-y-1/2"
           style={{
-            width: '600px',
-            height: '600px',
-            background: 'radial-gradient(circle at 52% 48%, rgba(255, 65, 50, 0.42) 0%, rgba(225, 30, 60, 0.24) 44%, rgba(160, 15, 50, 0.08) 66%, transparent 80%)',
+            width: '130px',
+            height: '120px',
+            background: 'radial-gradient(ellipse 65px 60px at 48% 52%, rgba(255, 90, 80, 0.58) 0%, rgba(240, 68, 56, 0.25) 50%, transparent 85%)',
           }}
         />
 
-        {/* Layer 3C: The Hot Glowing Ball Core (Spherical Center) */}
+        {/* Gentle Trailing Smoke Tendril */}
         <div
           className="absolute rounded-full -translate-x-1/2 -translate-y-1/2"
           style={{
-            width: '390px',
-            height: '390px',
-            background: 'radial-gradient(circle at 48% 48%, rgba(255, 80, 65, 0.70) 0%, rgba(240, 50, 40, 0.50) 36%, rgba(215, 20, 50, 0.26) 60%, transparent 78%)',
-          }}
-        />
-
-        {/* Layer 3D: High-Intensity Specular Ember Center */}
-        <div
-          className="absolute rounded-full -translate-x-1/2 -translate-y-1/2"
-          style={{
-            width: '180px',
-            height: '180px',
-            background: 'radial-gradient(circle at 46% 46%, rgba(255, 130, 115, 0.88) 0%, rgba(255, 75, 60, 0.45) 50%, transparent 75%)',
+            width: '70px',
+            height: '70px',
+            background: 'radial-gradient(circle at 45% 45%, rgba(255, 120, 110, 0.70) 0%, rgba(255, 75, 65, 0.30) 50%, transparent 80%)',
           }}
         />
       </div>
 
-      {/* ── 4. FLUTED / REEDED VERTICAL GLASS TEXTURE ACROSS VIEWPORT ── */}
+      {/* ── 4. FLUTED / REEDED VERTICAL GLASS TEXTURE (SUBTLE, HIGH CLARITY FOR FOG) ── */}
       <div
-        className="absolute inset-0 reeded-glass opacity-70"
+        className="absolute inset-0 reeded-glass opacity-35"
         style={{
           backgroundImage: 'repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0px, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 6px)',
         }}
       />
-
-      {/* ── 5. Luxury Perimeter Vignette ── */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(6,11,20,0.70)_100%)]" />
     </div>
   );
 };
