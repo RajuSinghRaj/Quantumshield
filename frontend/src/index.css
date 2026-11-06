@@ -77,6 +77,47 @@
   );
 }
 
+/* ── White-Grayish Smoke Floating Animations ── */
+@keyframes smokeFloatSlow {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    opacity: 0.70;
+  }
+  50% {
+    transform: translate3d(35px, -25px, 0) scale(1.08) rotate(1deg);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(-25px, 20px, 0) scale(0.96) rotate(-1deg);
+    opacity: 0.75;
+  }
+}
+
+@keyframes smokeFloatFast {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.02);
+    opacity: 0.60;
+  }
+  50% {
+    transform: translate3d(-30px, 25px, 0) scale(0.95);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(20px, -15px, 0) scale(1.06);
+    opacity: 0.65;
+  }
+}
+
+.smoke-cloud-1 {
+  animation: smokeFloatSlow 22s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+.smoke-cloud-2 {
+  animation: smokeFloatFast 17s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
 .tidewell-glass-card {
   background: rgba(18, 25, 42, 0.75);
   backdrop-filter: blur(16px);

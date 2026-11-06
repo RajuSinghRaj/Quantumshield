@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 
 export const CursorGlowBackground: React.FC = () => {
-  const glowRef1 = useRef<HTMLDivElement>(null);
-  const glowRef2 = useRef<HTMLDivElement>(null);
+  const pillarRef = useRef<HTMLDivElement>(null);
+  const coreRef = useRef<HTMLDivElement>(null);
+  const flareRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Current interpolated positions
@@ -18,20 +19,23 @@ export const CursorGlowBackground: React.FC = () => {
       const dx = targetX - currentX;
       const dy = targetY - currentY;
 
-      // Smooth lerp damping
-      currentX += dx * 0.08;
-      currentY += dy * 0.08;
+      // Smooth lerp damping for silky fluid momentum
+      currentX += dx * 0.075;
+      currentY += dy * 0.075;
 
-      const transformStr = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+      const transformStr = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%) rotate(-3deg)`;
 
-      if (glowRef1.current) {
-        glowRef1.current.style.transform = transformStr;
+      if (pillarRef.current) {
+        pillarRef.current.style.transform = transformStr;
       }
-      if (glowRef2.current) {
-        glowRef2.current.style.transform = transformStr;
+      if (coreRef.current) {
+        coreRef.current.style.transform = transformStr;
+      }
+      if (flareRef.current) {
+        flareRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
       }
 
-      // If still moving, keep animating; otherwise sleep to save GPU
+      // If still moving, keep animating; otherwise sleep to save GPU cycles
       if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
         animFrame = requestAnimationFrame(updatePosition);
       } else {
@@ -50,12 +54,10 @@ export const CursorGlowBackground: React.FC = () => {
     };
 
     // Initial render placement
-    if (glowRef1.current) {
-      glowRef1.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
-    }
-    if (glowRef2.current) {
-      glowRef2.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
-    }
+    const initTransform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%) rotate(-3deg)`;
+    if (pillarRef.current) pillarRef.current.style.transform = initTransform;
+    if (coreRef.current) coreRef.current.style.transform = initTransform;
+    if (flareRef.current) flareRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
 
@@ -77,30 +79,78 @@ export const CursorGlowBackground: React.FC = () => {
       <div className="absolute -top-40 -left-40 w-[700px] h-[700px] rounded-full bg-blue-900/20 blur-[140px]" />
       <div className="absolute top-1/3 -left-20 w-[500px] h-[500px] rounded-full bg-indigo-950/25 blur-[120px]" />
 
-      {/* ── 3. Interactive Cursor-Tracking Ruby/Crimson Radiant Glow (Zero React Re-renders, Pure GPU) ── */}
-      {/* Wide atmospheric crimson bloom - using naturally feathered radial gradient for 0ms rasterization */}
+      {/* ── 3. WHITE-GRAYISH SMOKE & VAPOR LAYERS (TIDEWELL ATMOSPHERE) ── */}
+      {/* Primary White-Gray Smoke Cloud (Upper Left / Center) */}
       <div
-        ref={glowRef1}
-        className="absolute top-0 left-0 rounded-full will-change-transform"
+        className="absolute smoke-cloud-1 pointer-events-none"
         style={{
-          width: '780px',
-          height: '780px',
-          background: 'radial-gradient(circle, rgba(240, 68, 56, 0.45) 0%, rgba(225, 29, 72, 0.25) 35%, rgba(159, 18, 57, 0.08) 60%, transparent 75%)',
+          width: '950px',
+          height: '650px',
+          left: '12%',
+          top: '8%',
+          background: 'radial-gradient(ellipse 480px 320px at 50% 50%, rgba(225, 232, 245, 0.16) 0%, rgba(185, 198, 220, 0.09) 45%, rgba(140, 155, 185, 0.03) 70%, transparent 85%)',
         }}
       />
 
-      {/* Intense inner ruby specular core */}
+      {/* Secondary Drifting Smoke Plume (Lower Left / Under Headline) */}
       <div
-        ref={glowRef2}
-        className="absolute top-0 left-0 rounded-full will-change-transform"
+        className="absolute smoke-cloud-2 pointer-events-none"
         style={{
-          width: '320px',
-          height: '320px',
-          background: 'radial-gradient(circle, rgba(255, 99, 88, 0.55) 0%, rgba(240, 68, 56, 0.22) 45%, transparent 75%)',
+          width: '800px',
+          height: '520px',
+          left: '2%',
+          top: '32%',
+          background: 'radial-gradient(ellipse 400px 260px at 50% 50%, rgba(240, 244, 255, 0.13) 0%, rgba(195, 205, 225, 0.07) 50%, transparent 80%)',
         }}
       />
 
-      {/* ── 4. Fluted / Reeded Vertical Glass Texture Across Viewport ── */}
+      {/* Center Subtle Milky Mist Wash */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          width: '1100px',
+          height: '750px',
+          left: '20%',
+          top: '20%',
+          background: 'radial-gradient(ellipse 550px 380px at 50% 50%, rgba(215, 225, 242, 0.08) 0%, rgba(160, 175, 205, 0.03) 60%, transparent 85%)',
+        }}
+      />
+
+      {/* ── 4. VERTICAL RADIANT CRIMSON AURORA PILLAR (NO LONGER A ROUND BALL) ── */}
+      {/* Wide Vertical Aurora Pillar Curtain (Tall Elliptical Ribbon) */}
+      <div
+        ref={pillarRef}
+        className="absolute top-0 left-0 will-change-transform pointer-events-none"
+        style={{
+          width: '560px',
+          height: '1350px',
+          background: 'radial-gradient(ellipse 280px 680px at 50% 50%, rgba(240, 68, 56, 0.46) 0%, rgba(225, 29, 72, 0.25) 38%, rgba(159, 18, 57, 0.08) 65%, transparent 85%)',
+        }}
+      />
+
+      {/* Focused Inner Scarlet Light Column (Vertical Specular Beam) */}
+      <div
+        ref={coreRef}
+        className="absolute top-0 left-0 will-change-transform pointer-events-none"
+        style={{
+          width: '240px',
+          height: '920px',
+          background: 'radial-gradient(ellipse 120px 460px at 50% 50%, rgba(255, 95, 82, 0.58) 0%, rgba(240, 68, 56, 0.24) 48%, transparent 80%)',
+        }}
+      />
+
+      {/* Anamorphic Horizontal Lens Flare Cross-Dispersion */}
+      <div
+        ref={flareRef}
+        className="absolute top-0 left-0 will-change-transform pointer-events-none"
+        style={{
+          width: '850px',
+          height: '240px',
+          background: 'radial-gradient(ellipse 425px 120px at 50% 50%, rgba(240, 68, 56, 0.16) 0%, rgba(225, 29, 72, 0.06) 50%, transparent 75%)',
+        }}
+      />
+
+      {/* ── 5. Fluted / Reeded Vertical Glass Texture Across Viewport ── */}
       <div
         className="absolute inset-0 reeded-glass opacity-75"
         style={{
@@ -108,7 +158,7 @@ export const CursorGlowBackground: React.FC = () => {
         }}
       />
 
-      {/* ── 5. Luxury Perimeter Vignette ── */}
+      {/* ── 6. Luxury Perimeter Vignette ── */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(5,9,18,0.75)_100%)]" />
     </div>
   );
