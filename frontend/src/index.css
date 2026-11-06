@@ -15,7 +15,7 @@
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #080d19;
+    background-color: #0b1324;
     color: #ffffff;
   }
   code, kbd, pre, .font-mono {
@@ -24,37 +24,37 @@
 }
 
 /* ======================================================================
-   3. THEME VARIABLES — LUXURY DEEP MIDNIGHT NAVY & CORAL GLASSOK
+   3. THEME VARIABLES — COLD WINTER SLATE NAVY & CORAL GLASSOK
    ====================================================================== */
 
 :root, .theme-dark, .dark, .theme-light {
-  --bg-base:        #080d19;
-  --bg-surface:     rgba(13, 19, 35, 0.85);
-  --bg-elevated:    rgba(20, 28, 48, 0.85);
-  --bg-raised:      rgba(255, 255, 255, 0.06);
-  --bg-glass:       rgba(255, 255, 255, 0.07);
-  --bg-glass-hover: rgba(255, 255, 255, 0.12);
-  --border-subtle:  rgba(255, 255, 255, 0.08);
-  --border-glass:   rgba(255, 255, 255, 0.12);
-  --border-active:  rgba(240, 68, 56, 0.55);
+  --bg-base:        #0b1324;
+  --bg-surface:     rgba(16, 26, 48, 0.85);
+  --bg-elevated:    rgba(22, 35, 62, 0.85);
+  --bg-raised:      rgba(255, 255, 255, 0.07);
+  --bg-glass:       rgba(255, 255, 255, 0.08);
+  --bg-glass-hover: rgba(255, 255, 255, 0.13);
+  --border-subtle:  rgba(255, 255, 255, 0.10);
+  --border-glass:   rgba(255, 255, 255, 0.14);
+  --border-active:  rgba(240, 68, 56, 0.60);
   --border-quantum: rgba(240, 68, 56, 0.35);
   --border-violet:  rgba(99, 102, 241, 0.30);
   --indigo:         #f04438;
   --indigo-bright:  #ff5547;
   --violet:         #e11d48;
   --violet-bright:  #f43f5e;
-  --blue:           #3b82f6;
-  --blue-bright:    #60a5fa;
+  --blue:           #38bdf8;
+  --blue-bright:    #7dd3fc;
   --cyan:           #38bdf8;
   --cyan-dim:       rgba(56, 189, 248, 0.65);
   --emerald:        #10b981;
   --amber:          #f59e0b;
   --rose:           #f04438;
   --text-primary:   #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.72);
-  --text-muted:     rgba(255, 255, 255, 0.45);
+  --text-secondary: rgba(255, 255, 255, 0.78);
+  --text-muted:     rgba(255, 255, 255, 0.50);
   --text-accent:    #f04438;
-  --shadow-glass:   0 20px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --shadow-glass:   0 20px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14);
   --shadow-glow-indigo: 0 0 24px rgba(240, 68, 56, 0.25);
   --shadow-glow-cyan:   0 0 20px rgba(56, 189, 248, 0.18);
   --shadow-glow-violet: 0 0 20px rgba(225, 29, 72, 0.20);
@@ -115,6 +115,46 @@
 
 .smoke-cloud-2 {
   animation: smokeFloatFast 17s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+@keyframes redSmokePulse {
+  0% {
+    transform: scale(0.96) rotate(0deg);
+    opacity: 0.82;
+  }
+  50% {
+    transform: scale(1.10) rotate(3deg);
+    opacity: 0.98;
+  }
+  100% {
+    transform: scale(0.98) rotate(-2deg);
+    opacity: 0.85;
+  }
+}
+
+@keyframes redVaporDrift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    opacity: 0.50;
+  }
+  50% {
+    transform: translate3d(18px, -14px, 0) scale(1.18) rotate(6deg);
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate3d(-14px, 12px, 0) scale(0.94) rotate(-4deg);
+    opacity: 0.55;
+  }
+}
+
+.red-smoke-puff {
+  animation: redSmokePulse 9s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+.red-vapor-cloud {
+  animation: redVaporDrift 14s ease-in-out infinite alternate;
   will-change: transform, opacity;
 }
 
