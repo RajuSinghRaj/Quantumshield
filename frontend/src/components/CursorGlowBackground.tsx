@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 
 /**
- * Live Volumetric Smoke Simulation Engine
+ * Cinematic Atmospheric Fog & Smoke Engine
  * 
- * 1. Live Red Smoke actively emitting from cursor position, curling, swirling, and dissolving.
- * 2. Live White/Grey Smoke continuously billowing from the background and drifting across the screen.
- * 3. 60 FPS hardware-accelerated canvas with particle pooling (zero GC lag, zero React re-renders).
+ * Implemented via hardware-accelerated WebGL shader (fBM fluid noise):
+ * 1. Continuous, slow-billowing, organic cloudy white/grey fog across the background.
+ * 2. Small, wispy, curling crimson smoke plume that smoothly tracks the cursor.
+ * 3. Deep midnight slate-navy base with subtle blue ambient depth.
+ * 4. 60+ FPS GPU acceleration, zero React re-renders, zero particle dots/circles.
  */
 export const CursorGlowBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -13,294 +15,272 @@ export const CursorGlowBackground: React.FC = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d', { alpha: true });
-    if (!ctx) return;
 
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    // Check for prefers-reduced-motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Mouse tracking with momentum
-    let mouseX = width * 0.6;
-    let mouseY = height * 0.45;
-    let prevMouseX = mouseX;
-    let prevMouseY = mouseY;
-    let mouseVx = 0;
-    let mouseVy = 0;
-
-    // ─────────────────────────────────────────────────────────────
-    // 1. PRE-RENDER ORGANIC FRACTAL SMOKE SPRITES (TEXTURED PUFFS)
-    // ─────────────────────────────────────────────────────────────
-    const makePuffSprite = (colorType: 'white' | 'crimson' | 'scarlet') => {
-      const size = 256;
-      const off = document.createElement('canvas');
-      off.width = size;
-      off.height = size;
-      const oCtx = off.getContext('2d');
-      if (!oCtx) return off;
-
-      const c = size / 2;
-
-      // Organic cluster of overlapping soft clouds
-      const lobes = [
-        { x: 0,   y: 0,   r: 70,  a: 0.22 },
-        { x: -22, y: -16, r: 55,  a: 0.16 },
-        { x: 24,  y: 14,  r: 60,  a: 0.17 },
-        { x: -16, y: 20,  r: 52,  a: 0.15 },
-        { x: 20,  y: -18, r: 58,  a: 0.14 },
-        { x: -30, y: 2,   r: 45,  a: 0.12 },
-        { x: 10,  y: 26,  r: 48,  a: 0.13 },
-      ];
-
-      lobes.forEach(({ x, y, r, a }) => {
-        const grad = oCtx.createRadialGradient(c + x, c + y, 0, c + x, c + y, r);
-        if (colorType === 'white') {
-          grad.addColorStop(0,   `rgba(240, 246, 255, ${a * 1.4})`);
-          grad.addColorStop(0.4, `rgba(205, 220, 245, ${a * 0.9})`);
-          grad.addColorStop(0.8, `rgba(150, 175, 210, ${a * 0.3})`);
-          grad.addColorStop(1,   'rgba(150, 175, 210, 0)');
-        } else if (colorType === 'crimson') {
-          grad.addColorStop(0,   `rgba(240, 50, 45, ${a * 1.5})`);
-          grad.addColorStop(0.4, `rgba(220, 20, 55, ${a * 1.0})`);
-          grad.addColorStop(0.8, `rgba(140, 10, 40, ${a * 0.35})`);
-          grad.addColorStop(1,   'rgba(140, 10, 40, 0)');
-        } else {
-          // scarlet / warm highlights
-          grad.addColorStop(0,   `rgba(255, 75, 60, ${a * 1.6})`);
-          grad.addColorStop(0.4, `rgba(235, 35, 45, ${a * 1.0})`);
-          grad.addColorStop(0.8, `rgba(160, 15, 35, ${a * 0.35})`);
-          grad.addColorStop(1,   'rgba(160, 15, 35, 0)');
-        }
-
-        oCtx.fillStyle = grad;
-        oCtx.beginPath();
-        oCtx.arc(c + x, c + y, r, 0, Math.PI * 2);
-        oCtx.fill();
-      });
-
-      return off;
-    };
-
-    const spriteWhite   = makePuffSprite('white');
-    const spriteCrimson = makePuffSprite('crimson');
-    const spriteScarlet = makePuffSprite('scarlet');
-
-    // ─────────────────────────────────────────────────────────────
-    // 2. LIVE PARTICLE STRUCTURES
-    // ─────────────────────────────────────────────────────────────
-    interface SmokePuff {
-      active: boolean;
-      type: 'white' | 'red';
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      size: number;
-      growRate: number;
-      rotation: number;
-      rotSpeed: number;
-      age: number;
-      maxAge: number;
-      maxAlpha: number;
-      sprite: HTMLCanvasElement;
-      turbulenceSeed: number;
+    // Initialize WebGL context
+    const gl = canvas.getContext('webgl', { alpha: false, antialias: false, depth: false }) as WebGLRenderingContext | null;
+    if (!gl) {
+      console.warn('WebGL not supported, falling back to static background');
+      return;
     }
 
-    // Pool of 90 live smoke particles (zero garbage collection)
-    const MAX_PARTICLES = 90;
-    const pool: SmokePuff[] = [];
+    // ─────────────────────────────────────────────────────────────
+    // 1. VERTEX SHADER (FULL-SCREEN QUAD)
+    // ─────────────────────────────────────────────────────────────
+    const vsSource = `
+      attribute vec2 a_position;
+      void main() {
+        gl_Position = vec4(a_position, 0.0, 1.0);
+      }
+    `;
 
-    for (let i = 0; i < MAX_PARTICLES; i++) {
-      pool.push({
-        active: false,
-        type: 'red',
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        size: 0,
-        growRate: 1,
-        rotation: 0,
-        rotSpeed: 0,
-        age: 0,
-        maxAge: 100,
-        maxAlpha: 0.5,
-        sprite: spriteCrimson,
-        turbulenceSeed: 0,
-      });
-    }
+    // ─────────────────────────────────────────────────────────────
+    // 2. FRAGMENT SHADER (fBM CLOUDY FOG & SMALL CURSOR RED SMOKE)
+    // ─────────────────────────────────────────────────────────────
+    const fsSource = `
+      precision mediump float;
+      uniform vec2 u_resolution;
+      uniform vec2 u_mouse;
+      uniform float u_time;
 
-    // Spawn a live Red Smoke puff at cursor
-    const spawnRedSmoke = (x: number, y: number, mvx: number, mvy: number) => {
-      const p = pool.find((item) => !item.active);
-      if (!p) return;
-
-      p.active = true;
-      p.type = 'red';
-      // Emit with slight spread around cursor
-      p.x = x + (Math.random() - 0.5) * 16;
-      p.y = y + (Math.random() - 0.5) * 16;
-      // Inherit mouse momentum + natural upward smoke buoyancy
-      p.vx = mvx * 0.12 + (Math.random() - 0.5) * 0.7;
-      p.vy = mvy * 0.12 - 0.45 - Math.random() * 0.65;
-      p.size = 35 + Math.random() * 25; // starts small at cursor
-      p.growRate = 1.012 + Math.random() * 0.006; // expands as it floats away
-      p.rotation = Math.random() * Math.PI * 2;
-      p.rotSpeed = (Math.random() - 0.5) * 0.015;
-      p.age = 0;
-      p.maxAge = 140 + Math.random() * 80; // 2.5 - 3.5 seconds
-      p.maxAlpha = 0.55 + Math.random() * 0.25;
-      p.sprite = Math.random() < 0.6 ? spriteCrimson : spriteScarlet;
-      p.turbulenceSeed = Math.random() * 100;
-    };
-
-    // Spawn a live White Smoke puff in background
-    const spawnWhiteSmoke = (forcedProgress = 0) => {
-      const p = pool.find((item) => !item.active);
-      if (!p) return;
-
-      p.active = true;
-      p.type = 'white';
-      // Background smoke anchors along bottom-left and mid-left
-      const anchor = Math.random();
-      if (anchor < 0.45) {
-        p.x = width * (0.05 + Math.random() * 0.25);
-        p.y = height * (0.75 + Math.random() * 0.22);
-      } else if (anchor < 0.8) {
-        p.x = width * (0.20 + Math.random() * 0.25);
-        p.y = height * (0.55 + Math.random() * 0.25);
-      } else {
-        p.x = width * (0.02 + Math.random() * 0.15);
-        p.y = height * (0.40 + Math.random() * 0.30);
+      // Fast, smooth pseudo-random hash
+      float hash(vec2 p) {
+        p = fract(p * vec2(123.34, 456.21));
+        p += dot(p, p + 45.32);
+        return fract(p.x * p.y);
       }
 
-      // Gentle drift upward and slightly rightward
-      p.vx = 0.15 + Math.random() * 0.35;
-      p.vy = -0.30 - Math.random() * 0.45;
-      p.size = 110 + Math.random() * 60; // large billowing cloud
-      p.growRate = 1.006 + Math.random() * 0.004;
-      p.rotation = Math.random() * Math.PI * 2;
-      p.rotSpeed = (Math.random() - 0.5) * 0.006;
-      p.maxAge = 320 + Math.random() * 180; // 5 - 8 seconds
-      p.age = forcedProgress > 0 ? p.maxAge * forcedProgress : 0;
-      p.maxAlpha = 0.48 + Math.random() * 0.22;
-      p.sprite = spriteWhite;
-      p.turbulenceSeed = Math.random() * 100;
+      // 2D Value Noise with Hermite interpolation
+      float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        float a = hash(i);
+        float b = hash(i + vec2(1.0, 0.0));
+        float c = hash(i + vec2(0.0, 1.0));
+        float d = hash(i + vec2(1.0, 1.0));
+        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+      }
+
+      // Fractional Brownian Motion (4 octaves for rich curling smoke texture)
+      float fbm(vec2 p) {
+        float v = 0.0;
+        float a = 0.5;
+        vec2 shift = vec2(100.0);
+        // Rotation matrix to eliminate grid artifacts
+        mat2 rot = mat2(0.877, 0.479, -0.479, 0.877);
+        for (int i = 0; i < 4; ++i) {
+          v += a * noise(p);
+          p = rot * p * 2.05 + shift;
+          a *= 0.5;
+        }
+        return v;
+      }
+
+      // Second fBM variant for turbulent swirling wisps
+      float fbmCurl(vec2 p) {
+        float n1 = fbm(p);
+        float n2 = fbm(p + vec2(5.2, 1.3));
+        return fbm(p + vec2(n1, n2) * 1.4);
+      }
+
+      void main() {
+        // Invert Y coordinate so shader coordinates match DOM window coordinates
+        vec2 fragCoord = vec2(gl_FragCoord.x, u_resolution.y - gl_FragCoord.y);
+        vec2 uv = fragCoord / u_resolution;
+        float aspect = u_resolution.x / u_resolution.y;
+
+        // ── A. Deep Cold Midnight Slate Base ──
+        vec3 color = mix(
+          vec3(0.035, 0.065, 0.125), // top cold slate-navy
+          vec3(0.025, 0.045, 0.085), // bottom deep midnight
+          uv.y
+        );
+
+        // Subtle ambient cold blue glow behind right-hand cards
+        float rightBlueGlow = length(uv - vec2(0.75, 0.45));
+        color += vec3(0.06, 0.12, 0.28) * smoothstep(0.65, 0.0, rightBlueGlow) * 0.45;
+
+        // ── B. CONTINUOUS CLOUDY FOG IN BACKGROUND (WHITE/GREY) ──
+        // Scale UV for wide, soft, billowing clouds
+        vec2 fogUv = vec2(uv.x * aspect, uv.y) * 1.35;
+        
+        // Slow organic drift across background
+        float t = u_time * 0.035;
+        float fog1 = fbmCurl(fogUv * 1.2 + vec2(t * 0.6, t * 0.2));
+        float fog2 = fbm(fogUv * 2.1 - vec2(t * 0.4, -t * 0.3));
+        
+        // Combine octaves into continuous cloudy fog
+        float combinedFog = fog1 * 0.65 + fog2 * 0.35;
+        float fogDensity = smoothstep(0.32, 0.72, combinedFog);
+
+        // Emphasize cloudy fog across left and center (behind headline)
+        float fogSpatialMask = smoothstep(0.95, 0.15, uv.x) * smoothstep(0.0, 0.25, uv.y) * smoothstep(1.0, 0.75, uv.y);
+        float whiteFogIntensity = fogDensity * fogSpatialMask * 0.42;
+
+        // Tint white/silver-grey with slight cool blue tone
+        vec3 fogColor = mix(vec3(0.72, 0.78, 0.88), vec3(0.92, 0.95, 1.0), fog2);
+        color = mix(color, fogColor, whiteFogIntensity);
+
+        // ── C. SMALL ORGANIC RED SMOKE FOLLOWING CURSOR ──
+        // Distance and vector from cursor
+        vec2 d = fragCoord - u_mouse;
+        float dist = length(d);
+
+        // Size: small, compact wisp (radius ~150px)
+        float smokeRadius = 155.0;
+
+        // Evaluate curling smoke turbulence relative to cursor
+        vec2 smokeCoord = d / 75.0;
+        float smokeTime = u_time * 0.25;
+        float smokePattern = fbmCurl(smokeCoord * 1.5 - vec2(smokeTime * 0.5, smokeTime * 0.7));
+
+        // Soft, organic, non-circular boundary that curls in the wind
+        float displacedDist = dist + (smokePattern - 0.5) * 65.0;
+        float smokeFalloff = smoothstep(smokeRadius, 0.0, displacedDist);
+
+        // Wispy internal smoke texture
+        float smokeTexture = smoothstep(0.25, 0.70, smokePattern);
+        float redSmokeAlpha = smokeFalloff * smokeTexture * 0.75;
+
+        // Rich cinematic crimson/scarlet with subtle coral highlight
+        vec3 redColor = mix(
+          vec3(0.85, 0.12, 0.22), // deep crimson
+          vec3(1.0, 0.32, 0.25),  // warm scarlet highlight
+          smoothstep(0.4, 0.8, smokePattern)
+        );
+
+        // Soft ambient warm glow immediately around the red smoke
+        float softGlow = smoothstep(220.0, 0.0, dist) * 0.18;
+        color += vec3(0.9, 0.15, 0.2) * softGlow;
+
+        // Blend the small red smoke wisp over the cloudy background
+        color = mix(color, redColor, redSmokeAlpha);
+
+        // Final output
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `;
+
+    // ─────────────────────────────────────────────────────────────
+    // 3. COMPILE & LINK SHADERS
+    // ─────────────────────────────────────────────────────────────
+    const createShader = (type: number, source: string) => {
+      const shader = gl.createShader(type);
+      if (!shader) return null;
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
     };
 
-    // Pre-seed background white smoke so page starts with smoke already billowing
-    for (let i = 0; i < 28; i++) {
-      spawnWhiteSmoke(i / 28);
+    const vs = createShader(gl.VERTEX_SHADER, vsSource);
+    const fs = createShader(gl.FRAGMENT_SHADER, fsSource);
+    if (!vs || !fs) return;
+
+    const program = gl.createProgram();
+    if (!program) return;
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error('Program link error:', gl.getProgramInfoLog(program));
+      return;
     }
 
+    gl.useProgram(program);
+
+    // Fullscreen quad buffer
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        -1.0, -1.0,
+         1.0, -1.0,
+        -1.0,  1.0,
+        -1.0,  1.0,
+         1.0, -1.0,
+         1.0,  1.0,
+      ]),
+      gl.STATIC_DRAW
+    );
+
+    const aPosition = gl.getAttribLocation(program, 'a_position');
+    gl.enableVertexAttribArray(aPosition);
+    gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+
+    // Uniform locations
+    const uResolution = gl.getUniformLocation(program, 'u_resolution');
+    const uMouse      = gl.getUniformLocation(program, 'u_mouse');
+    const uTime       = gl.getUniformLocation(program, 'u_time');
+
     // ─────────────────────────────────────────────────────────────
-    // 3. EVENT LISTENERS
+    // 4. MOUSE TRACKING & PARALLAX LERP
     // ─────────────────────────────────────────────────────────────
+    let targetMouseX = window.innerWidth * 0.60;
+    let targetMouseY = window.innerHeight * 0.45;
+    let curMouseX = targetMouseX;
+    let curMouseY = targetMouseY;
+
     const onPointerMove = (e: PointerEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
+      targetMouseX = e.clientX;
+      targetMouseY = e.clientY;
     };
 
-    const onResize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+    const handleResize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      gl.viewport(0, 0, canvas.width, canvas.height);
     };
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
-    window.addEventListener('resize', onResize, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
+    handleResize();
 
     // ─────────────────────────────────────────────────────────────
-    // 4. ANIMATION LOOP (LIVE SMOKE EMITTING & CURLING)
+    // 5. ANIMATION LOOP (60+ FPS HARDWARE-ACCELERATED SHADER)
     // ─────────────────────────────────────────────────────────────
     let animId: number;
-    let frame = 0;
+    const startTime = performance.now();
 
     const render = () => {
-      frame++;
+      // Smooth lerp mouse coordinates for fluid smoke momentum
+      curMouseX += (targetMouseX - curMouseX) * 0.085;
+      curMouseY += (targetMouseY - curMouseY) * 0.085;
 
-      // Compute cursor velocity
-      mouseVx = mouseX - prevMouseX;
-      mouseVy = mouseY - prevMouseY;
-      prevMouseX = mouseX;
-      prevMouseY = mouseY;
-      const speed = Math.hypot(mouseVx, mouseVy);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const elapsedSeconds = (performance.now() - startTime) * 0.001;
 
-      // LIVE EMISSION: Red Smoke actively coming out of cursor
-      // Emits more puffs when cursor moves, emits gentle puffs when cursor rests
-      if (speed > 1.5) {
-        spawnRedSmoke(mouseX, mouseY, mouseVx, mouseVy);
-        if (speed > 8) {
-          spawnRedSmoke(mouseX - mouseVx * 0.5, mouseY - mouseVy * 0.5, mouseVx, mouseVy);
-        }
-      } else if (frame % 3 === 0) {
-        // Continuous gentle emission when hovering or still
-        spawnRedSmoke(mouseX, mouseY, 0, 0);
+      gl.useProgram(program);
+      gl.uniform2f(uResolution, canvas.width, canvas.height);
+      gl.uniform2f(uMouse, curMouseX * dpr, curMouseY * dpr);
+      gl.uniform1f(uTime, elapsedSeconds);
+
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      if (!prefersReducedMotion) {
+        animId = requestAnimationFrame(render);
       }
-
-      // LIVE EMISSION: Background White Smoke continuously billowing
-      if (frame % 10 === 0) {
-        spawnWhiteSmoke(0);
-      }
-
-      // Clear canvas
-      ctx.clearRect(0, 0, width, height);
-
-      // Deep Midnight Slate Base
-      ctx.fillStyle = '#070c18';
-      ctx.fillRect(0, 0, width, height);
-
-      // Update & Render all active smoke puffs
-      // Using 'screen' blend mode so overlapping smoke wisps blend with luminous volume
-      ctx.globalCompositeOperation = 'screen';
-
-      pool.forEach((p) => {
-        if (!p.active) return;
-
-        p.age++;
-        if (p.age >= p.maxAge) {
-          p.active = false;
-          return;
-        }
-
-        // Swirling curl turbulence
-        const curlTime = p.age * 0.03 + p.turbulenceSeed;
-        p.vx += Math.cos(curlTime) * 0.08;
-        p.vy += Math.sin(curlTime) * 0.05;
-
-        // Position & size update (billowing & expanding)
-        p.x += p.vx;
-        p.y += p.vy;
-        p.size *= p.growRate;
-        p.rotation += p.rotSpeed;
-
-        // Smooth volumetric alpha envelope (fast fade in -> rolling smoke -> dissolve)
-        const progress = p.age / p.maxAge;
-        let alpha = p.maxAlpha;
-        if (progress < 0.20) {
-          alpha = p.maxAlpha * (progress / 0.20); // billowing in
-        } else if (progress > 0.55) {
-          alpha = p.maxAlpha * (1 - (progress - 0.55) / 0.45); // dissolving away
-        }
-
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
-        ctx.globalAlpha = Math.max(0, Math.min(alpha, 0.75));
-        ctx.drawImage(p.sprite, -p.size / 2, -p.size / 2, p.size, p.size);
-        ctx.restore();
-      });
-
-      // Restore blend mode
-      ctx.globalCompositeOperation = 'source-over';
-
-      animId = requestAnimationFrame(render);
     };
 
     render();
 
     return () => {
       window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animId);
+      gl.deleteProgram(program);
     };
   }, []);
 
@@ -309,13 +289,14 @@ export const CursorGlowBackground: React.FC = () => {
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
       aria-hidden="true"
     >
-      {/* ── 1. Live Interactive Smoke Simulation Canvas ── */}
+      {/* ── WebGL High-Performance Fluid Shader Canvas ── */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ width: '100%', height: '100%', display: 'block' }}
       />
 
-      {/* ── 2. Subtle Micro Reeded Glass Lines Texture ── */}
+      {/* ── Subtle Micro Reeded Glass Lines Texture ── */}
       <div
         className="absolute inset-0 reeded-glass opacity-25 pointer-events-none"
         style={{
