@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Shield, Home, Search, LayoutDashboard, Atom, BookOpen,
-  History, GitBranch, Sun, Moon, Activity, ArrowRight, Terminal
+  Clock, Menu, X, ArrowUpRight, Activity, Shield, Sparkles
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -13,117 +12,144 @@ interface NavbarProps {
 }
 
 const navItems = [
-  { id: 'home',         label: 'Home',        icon: Home },
-  { id: 'scanner',      label: 'Scanner',     icon: Search },
-  { id: 'migration',    label: 'Migration',   icon: GitBranch },
-  { id: 'devsecops',    label: 'DevSecOps',   icon: Terminal, highlight: true },
-  { id: 'quantum-lab',  label: 'Quantum Lab', icon: Atom },
-  { id: 'dashboard',    label: 'Reports',     icon: LayoutDashboard },
-  { id: 'education',    label: 'Learn',       icon: BookOpen },
-  { id: 'history',      label: 'History',     icon: History },
+  { id: 'home',         label: 'Stays' },
+  { id: 'scanner',      label: 'Scanner' },
+  { id: 'migration',    label: 'Migration' },
+  { id: 'devsecops',    label: 'DevSecOps' },
+  { id: 'quantum-lab',  label: 'Quantum Lab' },
+  { id: 'dashboard',    label: 'Reports' },
+  { id: 'education',    label: 'Journal' },
+  { id: 'history',      label: 'History' },
 ];
 
 export const Navbar: React.FC<NavbarProps> = ({
-  activeTab, setActiveTab, isBackendHealthy, isDarkMode, setIsDarkMode,
+  activeTab,
+  setActiveTab,
+  isBackendHealthy,
 }) => {
-  return (
-    <header className="sticky top-0 z-50 bg-[#faf7f2]/90 dark:bg-stone-950/90 border-b border-orange-200/40 dark:border-stone-800 backdrop-blur-xl transition-colors">
-      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16">
-        <div className="flex items-center justify-between h-16 sm:h-20">
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-          {/* ── LOGO (WARM ACCENT + QUANTUMSHIELD 2.0) ── */}
+  return (
+    <header className="sticky top-0 z-50 w-full transition-all duration-300 py-3 sm:py-4 px-4 sm:px-8 lg:px-12">
+      <div className="w-full max-w-[1700px] mx-auto flex items-center justify-between">
+
+        {/* ── 1. LOGO: ~ Tidewell / QuantumShield ── */}
+        <button
+          onClick={() => setActiveTab('home')}
+          className="flex items-center gap-2 group shrink-0 focus:outline-hidden"
+          aria-label="QuantumShield home"
+        >
+          <span className="text-2xl font-light text-white/70 group-hover:text-white transition-colors">~</span>
+          <span className="text-lg font-medium tracking-tight text-white group-hover:text-white/90 transition-colors">
+            QuantumShield
+          </span>
+        </button>
+
+        {/* ── 2. CENTER: FLOATING ULTRA-FROSTED PILL CAPSULE ── */}
+        <nav
+          className="hidden lg:flex items-center tidewell-pill-nav p-1 px-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+          aria-label="Main navigation"
+        >
+          {navItems.map(({ id, label }) => {
+            const isActive = activeTab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs transition-all duration-200 select-none ${
+                  isActive
+                    ? 'bg-white/[0.14] text-white font-medium shadow-xs'
+                    : 'text-white/60 hover:text-white hover:bg-white/[0.05] font-normal'
+                }`}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04438] shadow-[0_0_8px_#f04438] shrink-0" />
+                )}
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* ── 3. RIGHT CONTROLS: CIRCULAR CLOCK BUTTON + CORAL CTA + MENU PILL ── */}
+        <div className="flex items-center gap-2.5 shrink-0">
+
+          {/* Frosted Circular Clock Button (Exact match to top right in Tidewell screenshot) */}
           <button
-            onClick={() => setActiveTab('home')}
-            className="flex items-center gap-2.5 group shrink-0"
-            aria-label="QuantumShield 2.0 home"
+            onClick={() => setActiveTab('history')}
+            title="Scan History & Audit Log"
+            className="w-10 h-10 rounded-full backdrop-blur-2xl bg-white/[0.08] hover:bg-white/[0.15] border border-white/[0.12] flex items-center justify-center text-white/80 hover:text-white transition-all shadow-sm"
+            aria-label="Audit History"
           >
-            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-md shadow-orange-500/25 group-hover:scale-105 transition-transform">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex items-center">
-              <span className="text-base sm:text-lg font-black tracking-tight text-stone-900 dark:text-white">
-                QuantumShield <span className="text-orange-600 dark:text-orange-400">2.0</span>
-              </span>
-            </div>
+            <Clock className="w-4 h-4" />
           </button>
 
-          {/* ── DESKTOP CENTER NAV CAPSULE ── */}
-          <nav className="hidden lg:flex items-center bg-white/95 dark:bg-stone-900/90 border border-orange-200/60 dark:border-stone-800 p-1 rounded-full shadow-sm" aria-label="Main navigation">
-            {navItems.map(({ id, label, icon: Icon, highlight }) => {
+          {/* Backend Status Pill */}
+          <div
+            title={isBackendHealthy ? 'Crypto Engine Online' : 'Crypto Engine Offline'}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-2xl bg-white/[0.06] border border-white/[0.10] text-[11px] font-mono text-white/70"
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${isBackendHealthy ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-rose-500'}`} />
+            <span className="hidden md:inline">{isBackendHealthy ? 'ONLINE' : 'OFFLINE'}</span>
+          </div>
+
+          {/* Coral CTA Pill Button */}
+          <button
+            onClick={() => setActiveTab('scanner')}
+            className="tidewell-coral-pill text-white text-xs font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-full flex items-center gap-1.5 active:scale-95"
+          >
+            <span>Start Scan</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Frosted Glass Menu Button (Exact 2-bar menu button from screenshot) */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="w-10 h-10 rounded-full backdrop-blur-2xl bg-white/[0.08] hover:bg-white/[0.15] border border-white/[0.12] flex flex-col items-center justify-center gap-1 text-white/80 hover:text-white transition-all shadow-sm"
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? (
+              <X className="w-4 h-4" />
+            ) : (
+              <>
+                <span className="w-4 h-[1.5px] bg-white/80 rounded-full" />
+                <span className="w-4 h-[1.5px] bg-white/80 rounded-full" />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ── MOBILE ACCORDION MENU ── */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden mt-3 p-3 rounded-2xl tidewell-glass-card border border-white/[0.15] animate-fade-in">
+          <div className="grid grid-cols-2 gap-2">
+            {navItems.map(({ id, label }) => {
               const isActive = activeTab === id;
               return (
                 <button
                   key={id}
-                  onClick={() => setActiveTab(id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-all duration-200 ${
+                  onClick={() => {
+                    setActiveTab(id);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`flex items-center gap-2 p-2.5 rounded-xl text-xs transition-all ${
                     isActive
-                      ? 'bg-orange-100 text-orange-700 dark:bg-orange-600/30 dark:text-orange-300 font-bold shadow-xs'
-                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white hover:bg-orange-50/60 dark:hover:bg-stone-800/60 font-medium'
+                      ? 'bg-white/[0.15] text-white font-medium'
+                      : 'text-white/70 hover:text-white hover:bg-white/[0.06]'
                   }`}
-                  aria-current={isActive ? 'page' : undefined}
                 >
-                  <Icon className="w-3.5 h-3.5 shrink-0" />
-                  <span>{label}</span>
-                  {highlight && !isActive && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                  {isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f04438] shadow-[0_0_8px_#f04438] shrink-0" />
                   )}
+                  <span>{label}</span>
                 </button>
               );
             })}
-          </nav>
-
-          {/* ── RIGHT CONTROLS (HEALTH, THEME, START SCAN -> CTA) ── */}
-          <div className="flex items-center gap-2.5 shrink-0">
-
-            {/* Backend health pill */}
-            <div className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-mono font-semibold transition-colors ${
-              isBackendHealthy
-                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                : 'border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400'
-            }`}>
-              <Activity className="w-3 h-3" />
-              <span>{isBackendHealthy ? 'ONLINE' : 'OFFLINE'}</span>
-              <div className={`w-1.5 h-1.5 rounded-full ${isBackendHealthy ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-            </div>
-
-            {/* Theme toggle */}
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2 rounded-full border border-stone-200 dark:border-stone-800 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800 transition-all"
-              aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-
-            {/* Start scan CTA (Vibrant orange pill with right arrow matching screenshot #4) */}
-            <button
-              onClick={() => setActiveTab('scanner')}
-              className="bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-semibold text-xs px-5 py-2.5 rounded-full flex items-center gap-1.5 shadow-md shadow-orange-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <span>Start Scan</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
           </div>
         </div>
-
-        {/* ── MOBILE NAV ── */}
-        <nav className="md:hidden flex items-center gap-0.5 pb-2 overflow-x-auto" aria-label="Mobile navigation">
-          {navItems.map(({ id, label, icon: Icon, highlight }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              className={`qs-nav-item flex items-center gap-1 whitespace-nowrap text-[11px] py-1.5 px-2.5 ${activeTab === id ? 'active' : ''} ${highlight ? 'relative' : ''}`}
-              aria-current={activeTab === id ? 'page' : undefined}
-            >
-              <Icon className="w-3 h-3 shrink-0" />
-              <span>{label}</span>
-              {highlight && activeTab !== id && (
-                <span className="w-1 h-1 rounded-full bg-cyan-400 animate-pulse" />
-              )}
-            </button>
-          ))}
-        </nav>
-      </div>
+      )}
     </header>
   );
 };

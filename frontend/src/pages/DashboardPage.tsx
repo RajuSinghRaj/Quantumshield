@@ -36,16 +36,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ scanResult, onNewS
   // ── Empty state ──
   if (!scanResult) {
     return (
-      <div className="w-full max-w-3xl mx-auto py-20 px-4 text-center space-y-6">
-        <div className="glass-card p-12 sm:p-16 rounded-3xl border border-orange-200/80 dark:border-stone-800 space-y-5 bg-white/95 dark:bg-stone-900/95 shadow-xl">
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-orange-100 dark:bg-orange-950/60 border border-orange-200/80 dark:border-orange-800/40 flex items-center justify-center">
-            <Layers className="w-10 h-10 text-orange-600 dark:text-orange-400" />
+      <div className="w-full max-w-3xl mx-auto py-20 px-4 text-center space-y-6 text-white">
+        <div className="tidewell-glass-card p-12 sm:p-16 rounded-3xl border border-white/[0.12] space-y-5 shadow-2xl">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-white/[0.08] border border-white/[0.12] flex items-center justify-center">
+            <Layers className="w-10 h-10 text-[#f04438]" />
           </div>
-          <h2 className="text-2xl font-black text-stone-900 dark:text-stone-50 tracking-tight">No scan results to display</h2>
-          <p className="text-sm text-stone-600 dark:text-stone-400 max-w-md mx-auto leading-relaxed">
+          <h2 className="text-2xl font-medium text-white tracking-tight">No scan results to display</h2>
+          <p className="text-sm text-white/50 max-w-md mx-auto leading-relaxed font-light">
             Run a cryptographic audit or select a demo project to view the full security dashboard.
           </p>
-          <button onClick={onNewScan} className="bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs px-6 py-3.5 rounded-full flex items-center gap-2 mx-auto shadow-lg shadow-orange-600/25 transition-all hover:scale-105">
+          <button onClick={onNewScan} className="tidewell-coral-pill text-white text-xs font-medium px-6 py-3.5 rounded-full flex items-center gap-2 mx-auto cursor-pointer">
             <Sparkles className="w-4 h-4 text-white" />
             <span>Start New Scan</span>
           </button>
@@ -68,22 +68,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ scanResult, onNewS
   })();
 
   return (
-    <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-10 space-y-8">
+    <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-10 space-y-8 text-white">
 
       {/* ── Top banner ── */}
-      <div className={`glass-panel p-6 sm:p-8 rounded-3xl border ${riskBannerClass} flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-lg`}>
+      <div className={`tidewell-glass-card p-6 sm:p-8 rounded-3xl border border-white/[0.12] flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-2xl`}>
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-white/[0.08] border border-white/[0.12] flex items-center justify-center shrink-0">
             {riskIcon}
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950/70 text-orange-700 dark:text-orange-300 font-bold text-[10px] uppercase font-mono tracking-wider">{scanResult.scan_type} AUDIT</span>
-              <span className="text-[11px] text-stone-500 font-mono">ID: {scanResult.scan_id.slice(0, 8)}</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-white/[0.08] border border-white/[0.12] text-white/80 font-bold text-[10px] uppercase font-mono tracking-wider">{scanResult.scan_type} AUDIT</span>
+              <span className="text-[11px] text-white/40 font-mono">ID: {scanResult.scan_id.slice(0, 8)}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-stone-50 tracking-tight">{scanResult.project_name}</h1>
-            <div className="flex items-center gap-2 mt-1 text-[11px] text-stone-500 dark:text-stone-400 font-mono">
-              <Clock className="w-3.5 h-3.5 text-orange-500" />
+            <h1 className="text-2xl sm:text-3xl font-medium text-white tracking-tight">{scanResult.project_name}</h1>
+            <div className="flex items-center gap-2 mt-1 text-[11px] text-white/40 font-mono">
+              <Clock className="w-3.5 h-3.5 text-[#f04438]" />
               <span>Audited {new Date(scanResult.created_at).toLocaleString()}</span>
             </div>
           </div>
@@ -91,9 +91,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ scanResult, onNewS
 
         <div className="flex items-center gap-3 shrink-0 flex-wrap">
           <div className={`px-3 py-1.5 rounded-xl border font-mono text-[11px] font-bold ${
-            scanResult.scores.overall_risk === 'CRITICAL' ? 'border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-400' :
-            scanResult.scores.overall_risk === 'HIGH'     ? 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400' :
-            'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+            scanResult.scores.overall_risk === 'CRITICAL' ? 'border-rose-500/40 bg-rose-500/20 text-rose-300' :
+            scanResult.scores.overall_risk === 'HIGH'     ? 'border-amber-500/40 bg-amber-500/20 text-amber-300' :
+            'border-emerald-500/40 bg-emerald-500/20 text-emerald-300'
           }`}>
             {scanResult.scores.overall_risk} RISK
           </div>
@@ -102,9 +102,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ scanResult, onNewS
           <a
             href={getCbomExportUrl(scanResult.scan_id)}
             download={`QuantumShield_CBOM_${scanResult.scan_id.slice(0, 8)}.json`}
-            className="px-4 py-2.5 rounded-full text-xs font-mono font-semibold border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 hover:border-orange-400 transition-all flex items-center gap-2 shadow-xs"
+            className="px-4 py-2.5 rounded-full text-xs font-mono font-medium border border-white/[0.12] bg-white/[0.06] text-white/80 hover:text-white hover:bg-white/[0.1] transition-all flex items-center gap-2"
           >
-            <FileText className="w-4 h-4 text-orange-500" />
+            <FileText className="w-4 h-4 text-[#f04438]" />
             <span>Export CBOM (.json)</span>
           </a>
 
@@ -113,7 +113,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ scanResult, onNewS
             href={getPdfReportUrl(scanResult.scan_id)}
             target="_blank"
             rel="noreferrer"
-            className="bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs px-5 py-2.5 rounded-full flex items-center gap-2 shadow-md shadow-orange-600/20 transition-all hover:scale-[1.02]"
+            className="tidewell-coral-pill text-white text-xs font-medium px-5 py-2.5 rounded-full flex items-center gap-2"
           >
             <Download className="w-4 h-4 text-white" />
             <span>Download PDF Report</span>
@@ -128,39 +128,38 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ scanResult, onNewS
             label: 'Findings',
             value: scanResult.findings?.length ?? 0,
             sub: 'cryptographic assets',
-            color: 'text-orange-600 dark:text-orange-400',
+            color: 'text-rose-400',
             icon: Shield,
           },
           {
             label: 'Quantum Score',
             value: `${Math.round(scanResult.scores.quantum_score)}`,
             sub: '/ 100 readiness',
-            color: 'text-amber-600 dark:text-amber-400',
+            color: 'text-amber-400',
             icon: Sparkles,
           },
           {
             label: 'Classical Score',
             value: `${Math.round(scanResult.scores.classical_score)}`,
             sub: '/ 100 hardening',
-            color: 'text-stone-700 dark:text-stone-300',
+            color: 'text-white/80',
             icon: CheckCircle2,
           },
           {
             label: 'PQC Adopted',
             value: `${Math.round(scanResult.scores.pqc_score)}%`,
             sub: 'post-quantum ready',
-            color: 'text-emerald-600 dark:text-emerald-400',
+            color: 'text-emerald-400',
             icon: ShieldCheck,
           },
         ].map(({ label, value, sub, color, icon: Icon }) => (
-          <div key={label} className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-sm flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200/60 dark:border-orange-800/40 flex items-center justify-center shrink-0">
-              <Icon className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+          <div key={label} className="p-5 rounded-3xl tidewell-glass-subcard border border-white/[0.08] shadow-md flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-white/[0.08] border border-white/[0.12] flex items-center justify-center shrink-0">
+              <Icon className="w-6 h-6 text-[#f04438]" />
             </div>
             <div>
-              <p className={`text-2xl font-black ${color} font-mono`}>{value}</p>
-              <p className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest">{label}</p>
-              <p className="text-[11px] text-stone-400 dark:text-stone-500">{sub}</p>
+              <div className={`text-2xl font-bold font-mono ${color}`}>{value}</div>
+              <div className="text-xs text-white/50">{label} <span className="text-[10px] opacity-70">({sub})</span></div>
             </div>
           </div>
         ))}

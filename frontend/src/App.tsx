@@ -11,6 +11,7 @@ import { ScanHistoryTable } from './components/ScanHistoryTable';
 import { QuantumLabPage } from './pages/QuantumLabPage';
 import { PqcRemediationSandbox } from './components/PqcRemediationSandbox';
 import { DevSecOpsDashboard } from './components/DevSecOpsDashboard';
+import { CursorGlowBackground } from './components/CursorGlowBackground';
 import { RefreshCw, Terminal, Sparkles } from 'lucide-react';
 
 import {
@@ -72,16 +73,11 @@ export function App() {
   }, []);
 
   const [isBackendHealthy, setIsBackendHealthy] = useState<boolean>(true);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
 
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('theme-dark', 'dark');
-      document.documentElement.classList.remove('theme-light');
-    } else {
-      document.documentElement.classList.add('theme-light');
-      document.documentElement.classList.remove('theme-dark', 'dark');
-    }
+    document.documentElement.classList.add('theme-dark', 'dark');
+    document.documentElement.classList.remove('theme-light');
   }, [isDarkMode]);
   const [demoProjects, setDemoProjects] = useState<DemoProjectInfo[]>([]);
   const [currentScanResult, setCurrentScanResult] = useState<ScanResult | null>(null);
@@ -244,8 +240,10 @@ export function App() {
   };
 
   return (
-    <div className={`app-root min-h-screen flex flex-col transition-colors duration-300 ${isDarkMode ? 'theme-dark' : 'theme-light'}`}>
-      
+    <div className="app-root min-h-screen flex flex-col relative text-white selection:bg-[#f04438]/30 selection:text-white">
+      {/* ── DYNAMIC CURSOR-TRACKING GLOWING RUBY NEBULA & FLUTED GLASS ── */}
+      <CursorGlowBackground />
+
       {/* Top Navbar */}
       <Navbar
         activeTab={activeTab}
@@ -256,7 +254,7 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         
         {/* Error Alert Banner */}
         {errorMessage && (

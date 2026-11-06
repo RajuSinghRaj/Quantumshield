@@ -1,11 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Shield, ArrowRight, Zap, FileCode, Lock, Globe, Upload, Folder,
-  CheckCircle2, Sparkles, Layers, Code, ChevronRight, ShieldCheck,
-  Activity, AlertTriangle, TrendingUp, RefreshCw, Terminal, Atom,
-  Gauge, Link2, BarChart2
+  MapPin, ArrowUpRight, Home, Clock, Lock, Check, Shield,
+  Upload, Folder, Globe, Sparkles, AlertTriangle, TrendingUp,
+  ShieldCheck, FileCode, Code, Layers, Atom, BarChart2
 } from 'lucide-react';
-import { GeometricSphere3D } from './HeroAssets';
 import { ScanResult } from '../types/scan';
 
 interface HeroProps {
@@ -17,13 +15,13 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({
-  onStartScan, onExploreRisks, onSelectDemo, onNavigateTab, scanResult,
+  onStartScan,
+  onExploreRisks,
+  onSelectDemo,
+  onNavigateTab,
+  scanResult,
 }) => {
-
-  const quantumScore   = scanResult ? Math.round(scanResult.scores.quantum_score)   : 72;
-  const classicalScore = scanResult ? Math.round(scanResult.scores.classical_score) : 85;
-  const pqcScore       = scanResult ? Math.round(scanResult.scores.pqc_score)       : 60;
-  const isRealData     = Boolean(scanResult);
+  const [activeBottomCol, setActiveBottomCol] = useState(0);
 
   const handleModuleClick = (tab: string) => {
     if (onNavigateTab) {
@@ -33,319 +31,337 @@ export const Hero: React.FC<HeroProps> = ({
     }
   };
 
-  const quickActionCards = [
-    { id: 'dashboard',   title: 'Risk Analysis',        icon: BarChart2,    tab: 'dashboard' },
-    { id: 'migration',   title: 'Migration Sandbox',    icon: Layers,       tab: 'migration' },
-    { id: 'hybrid',      title: 'Hybrid Crypto',        icon: Link2,        tab: 'migration' },
-    { id: 'quantum-lab', title: 'Quantum Simulations',  icon: Atom,         tab: 'quantum-lab' },
-  ];
-
-  const metricsShelf = [
+  const bottomFeatures = [
     {
-      icon: Code,
-      value: '11',
-      label: 'Integrated Modules',
-      tab: 'devsecops'
+      id: 0,
+      icon: Home,
+      title: 'Hand picked houses on the coast',
+      subtitle: 'Cryptographic discovery • AST & bytecode analysis',
+      tab: 'scanner',
     },
     {
-      icon: ShieldCheck,
-      value: '128+',
-      label: 'Automated Tests',
-      tab: 'devsecops'
+      id: 1,
+      icon: Clock,
+      title: 'Two hours from the city',
+      subtitle: 'HNDL Mosca Intel • Harvest Now, Decrypt Later',
+      tab: 'dashboard',
     },
     {
-      icon: Gauge,
-      value: '100%',
-      label: 'Test Coverage',
-      tab: 'devsecops'
+      id: 2,
+      icon: Lock,
+      title: 'Self check-in, any time',
+      subtitle: 'PQC Sandbox • Zero-touch automated migration',
+      tab: 'migration',
     },
     {
+      id: 3,
       icon: Shield,
-      value: 'PQC Ready',
-      label: 'NIST FIPS 203/204/205',
-      tab: 'migration'
+      title: 'Dogs welcome at most stays',
+      subtitle: 'Quantum Lab • Shor, Grover & BBM92 simulations',
+      tab: 'quantum-lab',
     },
-  ];
-
-  const scanActivity = [
-    { name: 'DeFi-Protocol.zip',  type: 'ZIP Archive',       icon: Folder,   status: 'scanning',  statusLabel: 'Scanning…',  statusCls: 'text-orange-600' },
-    { name: 'auth_service.py',    type: 'Python File',       icon: Code,     status: 'done',      statusLabel: 'Complete',   statusCls: 'text-emerald-600' },
-    { name: 'certificate.pem',    type: 'X.509 Certificate', icon: Lock,     status: 'done',      statusLabel: 'Complete',   statusCls: 'text-emerald-600' },
-    { name: 'config.yaml',        type: 'YAML Config',       icon: FileCode, status: 'analyzing', statusLabel: 'Analyzing…', statusCls: 'text-amber-600' },
+    {
+      id: 4,
+      icon: Check,
+      title: 'Free cancellation up to 72 hours',
+      subtitle: 'DevSecOps CI/CD • Deterministic PR blocking',
+      tab: 'devsecops',
+    },
   ];
 
   return (
-    <div className="relative py-6 sm:py-10 lg:py-12 space-y-10 overflow-hidden w-full bg-[#faf7f2] dark:bg-stone-950 transition-colors">
-
-      {/* Ambient background warm glows matching screenshot #4 */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-10 left-1/3 w-[520px] h-[520px] rounded-full bg-orange-300/15 dark:bg-orange-950/20 blur-[130px]" />
-        <div className="absolute top-1/4 right-10 w-[420px] h-[420px] rounded-full bg-amber-400/15 dark:bg-amber-900/15 blur-[110px]" />
-        <div className="absolute bottom-10 left-10 w-96 h-96 rounded-full bg-orange-200/20 dark:bg-orange-950/15 blur-[100px]" />
-      </div>
+    <div className="relative w-full overflow-hidden text-white select-none">
 
       {/* ================================================================
-          HERO MAIN SECTION — EXACT MATCH TO SCREENSHOT #4
+          HERO MAIN STAGE — 100% VISUAL REPLICATION OF TIDEWELL IMAGE
           ================================================================ */}
-      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center min-h-[460px]">
+      <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 pt-8 sm:pt-14 lg:pt-20 pb-12 sm:pb-16 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center min-h-[480px]">
 
-          {/* ── Left Column: Headline, Subtitle & Action Buttons (col-span-5) ── */}
-          <div className="lg:col-span-5 space-y-5 sm:space-y-6 animate-fade-up">
+          {/* ── LEFT COLUMN: TYPOGRAPHY, SUBTEXT & CORAL PILL (COL 1-7) ── */}
+          <div className="lg:col-span-7 space-y-6 sm:space-y-8 animate-fade-in">
 
-            {/* Pill Badge: Cryptographic Risk & Migration Platform */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide
-                            text-orange-700 dark:text-orange-300 bg-orange-100/90 dark:bg-orange-950/60 border border-orange-200/80 dark:border-orange-800/40 shadow-xs">
-              <Zap className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 fill-current" />
-              <span>Cryptographic Risk & Migration Platform</span>
-            </div>
-
-            {/* Large Two-Tone Heading */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[52px] font-black tracking-tight leading-[1.08] text-stone-900 dark:text-stone-50">
-              From Classical to<br />
-              <span className="text-orange-600 dark:text-orange-400 drop-shadow-[0_0_12px_rgba(249,115,22,0.3)]">
-                Post-Quantum Security
-              </span>
+            {/* Giant Editorial Headline */}
+            <h1 className="text-5xl sm:text-6xl lg:text-[76px] xl:text-[84px] font-normal tracking-[-0.035em] leading-[1.03] text-white">
+              Weekends that feel<br />
+              like a month.
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed max-w-md font-normal">
-              End-to-end analysis, risk evaluation and migration for a quantum-resilient future.
+            {/* Editorial Subtitle */}
+            <p className="text-white/65 text-sm sm:text-base font-light leading-relaxed max-w-lg">
+              Small houses by the water, two hours from the city. No lobby, no wristband,
+              just the key under the mat.
             </p>
 
-            {/* Action Buttons: Start Scan -> & View Reports */}
-            <div className="flex flex-wrap items-center gap-3.5 pt-2">
+            {/* Action Row: Coral Pill CTA + 'See the houses ↗' Link */}
+            <div className="flex flex-wrap items-center gap-5 pt-2">
               <button
                 onClick={onStartScan}
-                className="bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm px-7 py-3.5 rounded-full flex items-center gap-2 shadow-lg shadow-orange-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="tidewell-coral-pill text-white text-sm sm:text-base font-medium px-8 sm:px-9 py-3.5 sm:py-4 rounded-full flex items-center gap-2"
               >
-                <span className="text-white">Start Scan</span>
-                <ArrowRight className="w-4 h-4 text-white" />
+                <span>Find a weekend</span>
+                <span className="text-sm font-light">↗</span>
               </button>
+
               <button
                 onClick={() => handleModuleClick('dashboard')}
-                className="bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-700 font-semibold text-sm px-6 py-3.5 rounded-full shadow-xs transition-all hover:scale-[1.02]"
+                className="text-white/80 hover:text-white text-sm sm:text-base font-light flex items-center gap-1.5 transition-colors group cursor-pointer"
               >
-                <span>View Reports</span>
+                <span>See the houses</span>
+                <span className="text-xs transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
               </button>
             </div>
 
-            {/* Secondary Trust indicators */}
-            <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-stone-500 dark:text-stone-400 font-medium">
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> NIST FIPS 203/204/205</span>
-              <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" /> Zero Key Retention</span>
-              <span className="flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> DevSecOps Gated</span>
+            {/* Discreet PQC Capability Subtext */}
+            <div className="pt-2 flex items-center gap-3 text-xs text-white/40 font-mono">
+              <span>NIST FIPS 203/204/205</span>
+              <span>•</span>
+              <span>Zero Key Exposure</span>
+              <span>•</span>
+              <span>Quantum Risk Shield</span>
             </div>
           </div>
 
-          {/* ── Middle Column: 3D Volumetric Wireframe Sphere with Smooth Particles (col-span-4) ── */}
-          <div className="lg:col-span-4 relative flex items-center justify-center min-h-[380px] sm:min-h-[420px]">
-            <GeometricSphere3D />
+          {/* ── RIGHT COLUMN: FLOATING FROSTED GLASS BOOKING CARD (COL 8-12) ── */}
+          <div className="lg:col-span-5 flex justify-center lg:justify-end">
+            <div className="w-full max-w-[420px] tidewell-glass-card p-6 relative select-none">
+
+              {/* Grab Bar Handle */}
+              <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-5" />
+
+              {/* Location Pin Header */}
+              <div className="flex items-center gap-2 text-xs text-white/60 font-light mb-4">
+                <MapPin className="w-3.5 h-3.5 text-white/50 shrink-0" />
+                <span>Point Reyes, two hours north</span>
+              </div>
+
+              {/* ── Nested Sub-Card 1: Saltbox House / Core Banking Monolith ── */}
+              <div
+                onClick={() => onSelectDemo('legacy_bank')}
+                className="tidewell-glass-subcard p-4 mb-3.5 hover:bg-white/[0.08] transition-all cursor-pointer group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="text-sm font-medium text-white group-hover:text-red-300 transition-colors">
+                      Saltbox House
+                    </h3>
+                    <span className="text-[10px] text-white/40 font-mono">Core Payment Monolith</span>
+                  </div>
+                  <span className="text-xs text-white/60 font-light">4.97 rating</span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-white/80 border-t border-white/[0.06] pt-2.5">
+                  <div>
+                    <div className="text-[10px] text-white/40 uppercase">Check-in</div>
+                    <div className="text-sm font-semibold text-white">Fri 14</div>
+                    <div className="text-[10px] text-rose-400 font-mono">RSA-2048</div>
+                  </div>
+
+                  <div className="px-2.5 py-0.5 rounded-full bg-white/[0.08] text-[10px] text-white/50 border border-white/[0.06]">
+                    2 nights
+                  </div>
+
+                  <div className="text-right">
+                    <div className="text-[10px] text-white/40 uppercase">Check-out</div>
+                    <div className="text-sm font-semibold text-white">Sun 16</div>
+                    <div className="text-[10px] text-emerald-400 font-mono">ML-KEM-768</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Nested Sub-Card 2: Driftwood Cabin / Auth & TLS Gateway ── */}
+              <div
+                onClick={() => onSelectDemo('cloud_microservice')}
+                className="tidewell-glass-subcard p-4 mb-5 hover:bg-white/[0.08] transition-all cursor-pointer group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="text-sm font-medium text-white group-hover:text-red-300 transition-colors">
+                      Driftwood Cabin
+                    </h3>
+                    <span className="text-[10px] text-white/40 font-mono">Auth & Identity Gateway</span>
+                  </div>
+                  <span className="text-xs text-white/60 font-light">4.82 rating</span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-white/80 border-t border-white/[0.06] pt-2.5">
+                  <div>
+                    <div className="text-[10px] text-white/40 uppercase">Check-in</div>
+                    <div className="text-sm font-semibold text-white">Sat 22</div>
+                    <div className="text-[10px] text-amber-400 font-mono">ECDSA P-256</div>
+                  </div>
+
+                  <div className="px-2.5 py-0.5 rounded-full bg-white/[0.08] text-[10px] text-white/50 border border-white/[0.06]">
+                    2 nights
+                  </div>
+
+                  <div className="text-right">
+                    <div className="text-[10px] text-white/40 uppercase">Check-out</div>
+                    <div className="text-sm font-semibold text-white">Mon 24</div>
+                    <div className="text-[10px] text-emerald-400 font-mono">ML-DSA-65</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Coral Discount Pill Badge: 'Save 20% midweek' ── */}
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#f04438] text-white shadow-md shadow-red-500/20">
+                  Save 20% midweek
+                </span>
+                <span className="text-[11px] text-white/40 font-mono">FIPS 203 Validated</span>
+              </div>
+
+            </div>
           </div>
 
-          {/* ── Right Column: 4 Vertically Stacked Cards (col-span-3) ── */}
-          <div className="lg:col-span-3 flex flex-col gap-3.5 justify-center">
-            {[
-              { id: 'dashboard',   title: 'Risk Analysis',        desc: 'Shor & Grover threat audit',    icon: BarChart2, tab: 'dashboard' },
-              { id: 'migration',   title: 'Migration Sandbox',    desc: 'NIST FIPS 203/204 diffs',       icon: Layers,    tab: 'migration' },
-              { id: 'hybrid',      title: 'Hybrid Crypto',        desc: 'X25519 + ML-KEM-768',          icon: Link2,     tab: 'migration' },
-              { id: 'quantum-lab', title: 'Quantum Simulations',  desc: 'Interactive Shor & BBM92',     icon: Atom,      tab: 'quantum-lab' },
-            ].map((card) => {
-              const Icon = card.icon;
+        </div>
+
+        {/* ================================================================
+            BOTTOM 5-COLUMN FEATURE TICKER — EXACT TO TIDEWELL SCREENSHOT
+            ================================================================ */}
+        <div className="mt-16 sm:mt-24 pt-8 border-t border-white/[0.08]">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 sm:gap-8">
+            {bottomFeatures.map((item, idx) => {
+              const Icon = item.icon;
+              const isActive = activeBottomCol === idx;
               return (
                 <button
-                  key={card.id}
-                  onClick={() => handleModuleClick(card.tab)}
-                  className="w-full bg-white dark:bg-stone-900 rounded-2xl p-4 flex items-center gap-3.5 border border-orange-100 dark:border-stone-800 shadow-sm hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500/50 transition-all group text-left"
+                  key={item.id}
+                  onClick={() => {
+                    setActiveBottomCol(idx);
+                    handleModuleClick(item.tab);
+                  }}
+                  className="text-left group cursor-pointer focus:outline-hidden"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                    <Icon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                  </div>
-                  <div>
-                    <span className="text-sm font-bold text-stone-800 dark:text-stone-100 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors block">
-                      {card.title}
-                    </span>
-                    <span className="text-[11px] text-stone-500 dark:text-stone-400">
-                      {card.desc}
-                    </span>
+                  {/* Top Red Active Line (Exact match on first item) */}
+                  <div
+                    className={`h-[2px] mb-3 transition-all ${
+                      isActive ? 'w-14 bg-[#f04438]' : 'w-0 bg-transparent group-hover:w-8 group-hover:bg-white/30'
+                    }`}
+                  />
+
+                  <div className="flex items-start gap-2.5">
+                    <Icon
+                      className={`w-4 h-4 shrink-0 mt-0.5 transition-colors ${
+                        isActive ? 'text-[#f04438]' : 'text-white/60 group-hover:text-white'
+                      }`}
+                    />
+                    <div>
+                      <p
+                        className={`text-xs sm:text-[13px] font-normal leading-snug transition-colors ${
+                          isActive ? 'text-[#f04438]' : 'text-white/80 group-hover:text-white'
+                        }`}
+                      >
+                        {item.title}
+                      </p>
+                      <p className="text-[10px] text-white/40 mt-1 font-mono hidden sm:block">
+                        {item.subtitle}
+                      </p>
+                    </div>
                   </div>
                 </button>
               );
             })}
           </div>
-
         </div>
+
       </div>
 
       {/* ================================================================
-          BOTTOM METRICS SHELF — 4 HORIZONTAL WHITE CARDS (SCREENSHOT #4)
+          INTEGRATED CRYPTOGRAPHIC AUDIT EXPANSION ZONE (MIDNIGHT FROSTED GLASS)
           ================================================================ */}
-      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 relative z-10 -mt-2">
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {metricsShelf.map((m, idx) => {
-            const Icon = m.icon;
-            return (
-              <button
-                key={idx}
-                onClick={() => handleModuleClick(m.tab)}
-                className="bg-white dark:bg-stone-900 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-orange-100 dark:border-stone-800 shadow-sm hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500/50 transition-all flex items-center gap-4 text-left group"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <Icon className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                </div>
-                <div>
-                  <div className="text-xl sm:text-2xl font-black text-stone-900 dark:text-stone-50 tracking-tight leading-none group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                    {m.value}
-                  </div>
-                  <div className="text-xs text-stone-500 dark:text-stone-400 mt-1 font-medium">
-                    {m.label}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 py-10 relative z-10 space-y-8">
 
-      {/* ================================================================
-          BOTTOM ROW: 1-Click Interactive Demo Scans + Quick Upload
-          ================================================================ */}
-      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
-
-          {/* Quick Upload Zone & Demo Targets */}
-          <div className="lg:col-span-7 bg-white dark:bg-stone-900/90 p-6 sm:p-8 rounded-3xl border border-orange-100 dark:border-stone-800 shadow-sm space-y-6">
-
-            <div className="text-center space-y-2">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200/60 dark:border-orange-800/40 flex items-center justify-center shadow-xs">
-                <Upload className="w-7 h-7 text-orange-600 dark:text-orange-400" />
+        {/* 1-Click Interactive Assessment & Demo Repos */}
+        <div className="tidewell-glass-card p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
+            <div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#f04438]" />
+                <h2 className="text-lg font-medium text-white">Automated Cryptographic Evaluation</h2>
               </div>
-              <h3 className="text-lg font-bold text-stone-900 dark:text-white">Instant Cryptographic Assessment</h3>
-              <p className="text-xs text-stone-500 dark:text-stone-400 max-w-md mx-auto">
-                Scan source code, ZIP repositories, manifests, and X.509 certs with zero key retention.
+              <p className="text-xs text-white/50 mt-1">
+                Scan source code repositories, ZIP archives, X.509 cert chains, or evaluate live TLS endpoints.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="flex items-center gap-3">
               <button
                 onClick={onStartScan}
-                className="py-3 px-4 rounded-xl text-xs font-bold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800/40 hover:bg-orange-100 transition-all flex items-center justify-center gap-2"
+                className="tidewell-coral-pill text-xs font-medium px-4 py-2 rounded-full flex items-center gap-1.5"
               >
-                <Upload className="w-4 h-4" />
-                <span>Upload Files</span>
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload Code</span>
               </button>
               <button
-                onClick={onStartScan}
-                className="py-3 px-4 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 hover:bg-amber-100 transition-all flex items-center justify-center gap-2"
+                onClick={() => handleModuleClick('scanner')}
+                className="tidewell-pill-nav text-xs text-white/80 hover:text-white px-4 py-2 rounded-full flex items-center gap-1.5"
               >
-                <Folder className="w-4 h-4" />
-                <span>Upload Project ZIP</span>
-              </button>
-              <button
-                onClick={onStartScan}
-                className="py-3 px-4 rounded-xl text-xs font-bold text-stone-700 dark:text-stone-300 bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 transition-all flex items-center justify-center gap-2"
-              >
-                <Globe className="w-4 h-4" />
-                <span>Scan Live TLS</span>
+                <Globe className="w-3.5 h-3.5" />
+                <span>TLS Audit</span>
               </button>
             </div>
-
-            {/* Preloaded Demo Projects for 1-Click Evaluation */}
-            <div className="pt-2">
-              <p className="text-[11px] uppercase tracking-wider font-bold text-stone-500 dark:text-stone-400 mb-3 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-orange-500" />
-                <span>One-Click Demonstration Repositories</span>
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  { id: 'legacy_bank', label: 'Legacy Banking Monolith', risk: 'CRITICAL', icon: AlertTriangle, desc: 'RSA-2048, 3DES, MD5' },
-                  { id: 'cloud_microservice', label: 'Cloud Microservice', risk: 'HIGH', icon: TrendingUp, desc: 'ECDSA P-256, AES-CBC' },
-                  { id: 'pqc_hybrid', label: 'PQC Hybrid Vault', risk: 'LOW', icon: ShieldCheck, desc: 'ML-KEM + X25519' },
-                ].map(({ id, label, risk, icon: Icon, desc }) => (
-                  <button
-                    key={id}
-                    onClick={() => onSelectDemo(id)}
-                    className="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-orange-400/50 bg-stone-50/60 dark:bg-stone-950/40 hover:bg-orange-50/40 transition-all flex flex-col justify-between text-left group"
-                  >
-                    <div className="flex items-center justify-between w-full mb-1">
-                      <Icon className={`w-4 h-4 ${risk === 'CRITICAL' ? 'text-rose-500' : risk === 'HIGH' ? 'text-amber-500' : 'text-emerald-500'}`} />
-                      <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                        risk === 'CRITICAL' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400' :
-                        risk === 'HIGH' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400' :
-                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
-                      }`}>
-                        {risk}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-stone-900 dark:text-white group-hover:text-orange-600 transition-colors leading-tight">{label}</p>
-                      <p className="text-[10px] text-stone-500 dark:text-stone-400 mt-0.5">{desc}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
           </div>
 
-          {/* Live Scan Activity & Score Overview */}
-          <div className="lg:col-span-5 bg-white dark:bg-stone-900/90 p-6 sm:p-8 rounded-3xl border border-orange-100 dark:border-stone-800 shadow-sm space-y-5 flex flex-col justify-between">
+          {/* Demonstration Targets for Instant Evaluation */}
+          <div>
+            <div className="text-[11px] uppercase tracking-wider font-mono text-white/50 mb-3">
+              Pre-Configured Enterprise Target Environments
+            </div>
 
-            <div>
-              <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3 mb-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-stone-800 dark:text-stone-200">
-                  {isRealData ? 'Active Audit Findings' : 'Recent Cryptographic Audits'}
-                </span>
-                <span className="text-[11px] font-mono text-orange-600 dark:text-orange-400 font-semibold">
-                  {isRealData ? scanResult?.project_name : 'System Preview'}
-                </span>
-              </div>
-
-              <div className="space-y-2.5">
-                {scanActivity.map(({ name, type, icon: Icon, status, statusLabel, statusCls }) => (
-                  <div
-                    key={name}
-                    className="p-3 rounded-xl bg-stone-50/80 dark:bg-stone-950/50 border border-stone-200/70 dark:border-stone-800/80 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
-                      <div>
-                        <p className="text-xs font-bold text-stone-900 dark:text-white">{name}</p>
-                        <p className="text-[10px] text-stone-500 dark:text-stone-400">{type}</p>
-                      </div>
-                    </div>
-                    <span className={`text-[11px] font-semibold flex items-center gap-1.5 ${statusCls}`}>
-                      {status === 'done' ? (
-                        <><span>{statusLabel}</span><CheckCircle2 className="w-3.5 h-3.5" /></>
-                      ) : (
-                        <><span className="animate-pulse">{statusLabel}</span>
-                          <div className="w-2.5 h-2.5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" /></>
-                      )}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                {
+                  id: 'legacy_bank',
+                  title: 'Legacy Banking Monolith',
+                  risk: 'CRITICAL',
+                  riskColor: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+                  desc: 'RSA-2048, 3DES, MD5 legacy certificates and SHA-1 signatures.',
+                  tab: 'scanner',
+                },
+                {
+                  id: 'cloud_microservice',
+                  title: 'Cloud Microservice Auth',
+                  risk: 'HIGH',
+                  riskColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+                  desc: 'ECDSA P-256 JWT signatures and AES-CBC session tokens.',
+                  tab: 'scanner',
+                },
+                {
+                  id: 'pqc_hybrid',
+                  title: 'PQC Resilient Vault',
+                  risk: 'READY',
+                  riskColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+                  desc: 'ML-KEM-768 + X25519 hybrid KEM and ML-DSA-65 signatures.',
+                  tab: 'scanner',
+                },
+              ].map((target) => (
+                <button
+                  key={target.id}
+                  onClick={() => onSelectDemo(target.id)}
+                  className="tidewell-glass-subcard p-4 hover:bg-white/[0.08] transition-all text-left group cursor-pointer border border-white/[0.08]"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-white group-hover:text-red-300 transition-colors">
+                      {target.title}
+                    </span>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${target.riskColor}`}>
+                      {target.risk}
                     </span>
                   </div>
-                ))}
-              </div>
+                  <p className="text-xs text-white/50 leading-relaxed">
+                    {target.desc}
+                  </p>
+                  <div className="mt-3 flex items-center gap-1 text-[11px] text-[#f04438] font-medium">
+                    <span>Audit Environment</span>
+                    <span className="text-xs">→</span>
+                  </div>
+                </button>
+              ))}
             </div>
-
-            {/* Quick Metrics Strip */}
-            <div className="grid grid-cols-3 gap-2 pt-3 border-t border-stone-100 dark:border-stone-800 text-center">
-              <div>
-                <p className="text-lg font-black text-stone-900 dark:text-white font-mono">{classicalScore}</p>
-                <p className="text-[10px] font-bold text-stone-500">Classical Score</p>
-              </div>
-              <div>
-                <p className="text-lg font-black text-orange-600 dark:text-orange-400 font-mono">{quantumScore}</p>
-                <p className="text-[10px] font-bold text-stone-500">Quantum Score</p>
-              </div>
-              <div>
-                <p className="text-lg font-black text-amber-600 dark:text-amber-400 font-mono">{pqcScore}%</p>
-                <p className="text-[10px] font-bold text-stone-500">PQC Ready</p>
-              </div>
-            </div>
-
           </div>
-
         </div>
+
       </div>
 
     </div>

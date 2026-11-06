@@ -268,19 +268,19 @@ python backend/quantumshield_cli.py devsecops evaluate . \\
 `;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-white">
       {/* ── Sub Navigation Header ── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-stone-900 border border-orange-100 dark:border-stone-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl tidewell-glass-card border border-white/[0.12] shadow-xl">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-950/50 border border-orange-200/80 dark:border-orange-800/40 flex items-center justify-center shrink-0">
-            <Terminal className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+          <div className="w-12 h-12 rounded-2xl bg-white/[0.08] border border-white/[0.12] flex items-center justify-center shrink-0">
+            <Terminal className="w-6 h-6 text-[#f04438]" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-stone-900 dark:text-stone-50 flex items-center gap-2.5">
+            <h2 className="text-xl font-medium text-white flex items-center gap-2.5">
               <span>DevSecOps Cryptographic Security Gate</span>
-              <span className="px-2.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950/70 text-orange-700 dark:text-orange-300 font-bold text-[10px] font-mono tracking-wider">CI/CD ENFORCEMENT</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-white/[0.08] border border-white/[0.12] text-white/80 font-bold text-[10px] font-mono tracking-wider">CI/CD ENFORCEMENT</span>
             </h2>
-            <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+            <p className="text-xs text-white/50 mt-0.5 font-light">
               Deterministic cryptographic policy enforcement, CBOM verification & automated PR blocking
             </p>
           </div>
@@ -292,9 +292,9 @@ python backend/quantumshield_cli.py devsecops evaluate . \\
           <button
             onClick={handleReevaluate}
             disabled={evaluating}
-            className="px-4 py-2 rounded-full text-xs font-semibold font-mono border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 hover:border-orange-400 transition-all flex items-center gap-2 disabled:opacity-50 shadow-xs"
+            className="px-4 py-2 rounded-full text-xs font-medium font-mono border border-white/[0.12] bg-white/[0.06] text-white/80 hover:text-white hover:bg-white/[0.1] transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-orange-500 ${evaluating ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-[#f04438] ${evaluating ? 'animate-spin' : ''}`} />
             <span>{evaluating ? 'Evaluating...' : 'Re-evaluate Gate'}</span>
           </button>
 
@@ -303,19 +303,19 @@ python backend/quantumshield_cli.py devsecops evaluate . \\
               <a
                 href={getDevSecOpsReportUrl(assessment.assessment_id)}
                 download={`SecurityGate_Report_${assessment.assessment_id.slice(0, 8)}.md`}
-                className="px-4 py-2 rounded-full text-xs font-mono font-semibold border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 hover:border-orange-400 transition-all flex items-center gap-1.5 shadow-xs"
+                className="px-4 py-2 rounded-full text-xs font-mono font-medium border border-white/[0.12] bg-white/[0.06] text-white/80 hover:text-white hover:bg-white/[0.1] transition-all flex items-center gap-1.5"
                 title="Download Markdown Report"
               >
-                <Download className="w-3.5 h-3.5 text-orange-500" />
+                <Download className="w-3.5 h-3.5 text-[#f04438]" />
                 <span>Report (.md)</span>
               </a>
               <a
                 href={getDevSecOpsCbomUrl(assessment.assessment_id)}
                 download={`CBOM_${assessment.assessment_id.slice(0, 8)}.json`}
-                className="px-4 py-2 rounded-full text-xs font-mono font-semibold border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 hover:border-orange-400 transition-all flex items-center gap-1.5 shadow-xs"
+                className="px-4 py-2 rounded-full text-xs font-mono font-medium border border-white/[0.12] bg-white/[0.06] text-white/80 hover:text-white hover:bg-white/[0.1] transition-all flex items-center gap-1.5"
                 title="Download CycloneDX CBOM"
               >
-                <FileText className="w-3.5 h-3.5 text-orange-500" />
+                <FileText className="w-3.5 h-3.5 text-[#f04438]" />
                 <span>CBOM (.json)</span>
               </a>
             </>
@@ -324,22 +324,22 @@ python backend/quantumshield_cli.py devsecops evaluate . \\
       </div>
 
       {loading && !assessment && (
-        <div className="p-10 rounded-3xl bg-white dark:bg-stone-900 border border-orange-100 dark:border-stone-800 flex flex-col items-center justify-center space-y-3 text-center shadow-sm">
-          <RefreshCw className="w-8 h-8 text-orange-500 animate-spin" />
-          <p className="text-sm text-stone-900 dark:text-stone-100 font-bold font-mono">Evaluating DevSecOps Security Gate & Loading Policies...</p>
-          <p className="text-xs text-stone-500 dark:text-stone-400">Checking 16 cryptographic policy rules, CBOM compliance, and gate thresholds.</p>
+        <div className="p-10 rounded-3xl tidewell-glass-card border border-white/[0.12] flex flex-col items-center justify-center space-y-3 text-center shadow-xl">
+          <RefreshCw className="w-8 h-8 text-[#f04438] animate-spin" />
+          <p className="text-sm text-white font-medium font-mono">Evaluating DevSecOps Security Gate & Loading Policies...</p>
+          <p className="text-xs text-white/50 font-light">Checking 16 cryptographic policy rules, CBOM compliance, and gate thresholds.</p>
         </div>
       )}
 
       {error && (
-        <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-3">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+        <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-950/40 text-rose-300 text-xs flex items-center gap-3">
+          <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
           <span>{error}</span>
         </div>
       )}
 
       {/* ── Subtabs ── */}
-      <div className="flex items-center gap-2 border-b border-orange-200/40 dark:border-stone-800 pb-2">
+      <div className="flex items-center gap-2 border-b border-white/[0.08] pb-2">
         {[
           { id: 'verdict' as const, label: 'Gate Verdict & Summary', icon: ShieldCheck, count: gateResult?.threshold_failures?.length ?? 0 },
           { id: 'policies' as const, label: 'Security Policy Manager (16 Rules)', icon: Sliders, count: policies?.length ?? 0 },
@@ -349,17 +349,17 @@ python backend/quantumshield_cli.py devsecops evaluate . \\
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 transition-all ${
+            className={`px-4 py-2.5 rounded-2xl text-xs font-medium flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === id
-                ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30 font-bold'
-                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-orange-50/60 dark:hover:bg-stone-800/60'
+                ? 'tidewell-coral-pill text-white font-semibold'
+                : 'text-white/60 hover:text-white hover:bg-white/[0.05]'
             }`}
           >
             <Icon className="w-3.5 h-3.5" />
             <span>{label}</span>
             {count !== undefined && (
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-                count > 0 ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold' : 'bg-stone-200/60 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
+                count > 0 ? 'bg-rose-500/30 text-rose-300 font-bold border border-rose-500/30' : 'bg-white/[0.08] text-white/60'
               }`}>
                 {count}
               </span>
@@ -372,25 +372,25 @@ python backend/quantumshield_cli.py devsecops evaluate . \\
       {activeTab === 'verdict' && (
         <div className="space-y-6">
           {/* Verdict Banner */}
-          <div className="bg-white dark:bg-stone-900 p-6 rounded-3xl border border-orange-100 dark:border-stone-800 space-y-4 shadow-sm">
+          <div className="tidewell-glass-card p-6 rounded-3xl border border-white/[0.12] space-y-4 shadow-xl">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <div className="text-[11px] font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-1">
+                <div className="text-[11px] font-mono uppercase tracking-wider text-white/50 mb-1">
                   Evaluation Outcome
                 </div>
-                <div className="text-2xl font-black text-stone-900 dark:text-stone-50 font-mono flex items-center gap-3">
+                <div className="text-2xl font-bold text-white font-mono flex items-center gap-3">
                   <span>{gateResult?.pipeline_status}</span>
                   {gateResult && getStatusBadge(gateResult.pipeline_status)}
                 </div>
               </div>
 
               {assessment?.evaluated_at && (
-                <div className="text-right text-xs text-stone-500 dark:text-stone-400 font-mono">
+                <div className="text-right text-xs text-white/50 font-mono">
                   <div className="flex items-center gap-1 justify-end">
-                    <Clock className="w-3.5 h-3.5 text-orange-500" />
+                    <Clock className="w-3.5 h-3.5 text-[#f04438]" />
                     <span>Evaluated: {new Date(assessment.evaluated_at).toLocaleString()}</span>
                   </div>
-                  <div className="text-[10px] text-stone-400 dark:text-stone-500 mt-0.5">
+                  <div className="text-[10px] text-white/40 mt-0.5">
                     Assessment ID: {assessment.assessment_id.slice(0, 12)}...
                   </div>
                 </div>
@@ -398,19 +398,19 @@ python backend/quantumshield_cli.py devsecops evaluate . \\
             </div>
 
             {gateResult?.summary && (
-              <p className="text-sm text-stone-700 dark:text-stone-300 bg-stone-50 dark:bg-stone-950/60 p-4 rounded-2xl border border-stone-200/80 dark:border-stone-800 font-mono leading-relaxed">
+              <p className="text-sm text-white/80 bg-white/[0.04] p-4 rounded-2xl border border-white/[0.08] font-mono leading-relaxed">
                 {gateResult.summary}
               </p>
             )}
 
             {/* Threshold Failures */}
             {gateResult && (gateResult?.threshold_failures?.length ?? 0) > 0 && (
-              <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/30 space-y-2">
-                <div className="text-xs font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-500" />
+              <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-950/40 space-y-2">
+                <div className="text-xs font-bold text-rose-300 uppercase tracking-wider flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-400" />
                   <span>Pipeline Gate Failed on Thresholds:</span>
                 </div>
-                <ul className="list-disc list-inside space-y-1 text-xs text-rose-800 dark:text-rose-200 font-mono">
+                <ul className="list-disc list-inside space-y-1 text-xs text-rose-200 font-mono">
                   {gateResult?.threshold_failures?.map((f, i) => (
                     <li key={i}>{f}</li>
                   ))}
@@ -421,43 +421,43 @@ python backend/quantumshield_cli.py devsecops evaluate . \\
 
           {/* Key Gate Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-stone-900 rounded-3xl p-5 border border-orange-100 dark:border-stone-800 shadow-sm">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Blocking Violations</div>
-              <div className="text-3xl font-black text-rose-600 dark:text-rose-400 font-mono mt-1">
+            <div className="tidewell-glass-subcard rounded-3xl p-5 border border-white/[0.08] shadow-md">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-rose-400">Blocking Violations</div>
+              <div className="text-3xl font-black text-rose-400 font-mono mt-1">
                 {gateResult?.blocking_violations?.length ?? 0}
               </div>
-              <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-1">Blocks build/PR</div>
+              <div className="text-[11px] text-white/40 mt-1">Blocks build/PR</div>
             </div>
 
-            <div className="bg-white dark:bg-stone-900 rounded-3xl p-5 border border-orange-100 dark:border-stone-800 shadow-sm">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Advisory Warnings</div>
-              <div className="text-3xl font-black text-amber-600 dark:text-amber-400 font-mono mt-1">
+            <div className="tidewell-glass-subcard rounded-3xl p-5 border border-white/[0.08] shadow-md">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-amber-400">Advisory Warnings</div>
+              <div className="text-3xl font-black text-amber-400 font-mono mt-1">
                 {gateResult?.advisory_warnings?.length ?? 0}
               </div>
-              <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-1">Non-blocking warnings</div>
+              <div className="text-[11px] text-white/40 mt-1">Non-blocking warnings</div>
             </div>
 
-            <div className="bg-white dark:bg-stone-900 rounded-3xl p-5 border border-orange-100 dark:border-stone-800 shadow-sm">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">Manual Reviews</div>
-              <div className="text-3xl font-black text-orange-600 dark:text-orange-400 font-mono mt-1">
+            <div className="tidewell-glass-subcard rounded-3xl p-5 border border-white/[0.08] shadow-md">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-300">Manual Reviews</div>
+              <div className="text-3xl font-black text-indigo-300 font-mono mt-1">
                 {gateResult?.manual_reviews?.length ?? 0}
               </div>
-              <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-1">Requires audit sign-off</div>
+              <div className="text-[11px] text-white/40 mt-1">Requires audit sign-off</div>
             </div>
 
-            <div className="bg-white dark:bg-stone-900 rounded-3xl p-5 border border-orange-100 dark:border-stone-800 shadow-sm">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Exceptions Applied</div>
-              <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1">
+            <div className="tidewell-glass-subcard rounded-3xl p-5 border border-white/[0.08] shadow-md">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Exceptions Applied</div>
+              <div className="text-3xl font-black text-emerald-400 font-mono mt-1">
                 {gateResult?.exceptions_applied?.length ?? 0}
               </div>
-              <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-1">Approved exceptions</div>
+              <div className="text-[11px] text-white/40 mt-1">Approved exceptions</div>
             </div>
           </div>
 
           {/* Thresholds Evaluated Grid */}
-          <div className="bg-white dark:bg-stone-900 p-6 rounded-3xl border border-orange-100 dark:border-stone-800 space-y-4 shadow-sm">
-            <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-orange-500" />
+          <div className="tidewell-glass-card p-6 rounded-3xl border border-white/[0.12] space-y-4 shadow-xl">
+            <h3 className="text-sm font-medium text-white flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-[#f04438]" />
               <span>Gate Threshold Criteria</span>
             </h3>
 
@@ -491,14 +491,14 @@ python backend/quantumshield_cli.py devsecops evaluate . \\
                 ];
 
                 return thresholdItems.map((item, idx) => (
-                  <div key={idx} className="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-950/60 border border-stone-200/80 dark:border-stone-800 flex flex-col justify-between">
+                  <div key={idx} className="p-3.5 rounded-2xl tidewell-glass-subcard border border-white/[0.08] flex flex-col justify-between">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] text-stone-600 dark:text-stone-400 font-medium">{item.label}</span>
-                      <span className={`w-2 h-2 rounded-full ${item.passed ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                      <span className="text-[11px] text-white/70 font-medium">{item.label}</span>
+                      <span className={`w-2 h-2 rounded-full ${item.passed ? 'bg-emerald-400' : 'bg-rose-500'}`} />
                     </div>
                     <div className="flex items-center justify-between mt-2 font-mono text-[11px]">
-                      <span className="text-stone-500 dark:text-stone-400">Threshold: <span className="text-stone-800 dark:text-stone-200 font-bold">{item.max}</span></span>
-                      <span className={item.passed ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-rose-600 dark:text-rose-400 font-bold'}>
+                      <span className="text-white/40">Threshold: <span className="text-white font-bold">{item.max}</span></span>
+                      <span className={item.passed ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
                         Actual: {item.actual}
                       </span>
                     </div>
